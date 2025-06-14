@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Register</title>
+        <link href="admin/css/styles.css" rel="stylesheet" />
+        <link href="css/bootstrap-icons.css" rel="stylesheet" />
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+       <link href="admin/css/styles.css" rel="stylesheet" />
+      <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
+      
+
+    </head>
+    <body class="bg-primary">
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <main>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-7">
+                                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Register</h3></div>
+                                    <div class="card-body">
+                                        <form action="proses_register.php" method="POST" enctype="multipart/form-data">
+    <div class="row">
+        <!-- Kolom Kiri -->
+        <div class="col-md-6 mb-3">
+            <label for="inputUsername" class="form-label">Username</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input class="form-control" id="inputUsername" name="username" type="text" placeholder="Masukkan Username" required>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="inputPassword" class="form-label">Password</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input class="form-control" id="inputPassword" name="password" type="password" placeholder="Masukkan Password" required>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="inputNama" class="form-label">Nama Lengkap</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                <input class="form-control" id="inputNama" name="nama" type="text" placeholder="Masukkan Nama Lengkap" required>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="inputEmail" class="form-label">Email</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input class="form-control" id="inputEmail" name="email" type="email" placeholder="Masukkan Email" required>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="inputAlamat" class="form-label">Alamat</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <textarea class="form-control" id="inputAlamat" name="alamat" placeholder="Masukkan Alamat" style="height: 100px" required></textarea>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="inputFoto" class="form-label">Foto (Opsional)</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                <input class="form-control" id="inputFoto" name="foto" type="file">
+            </div>
+        </div>
+    </div>
+    <div class="mt-4 mb-0 text-center">
+    <button type="submit" class="btn btn-primary px-5">Buat Akun</button>
+</div>
+
+</form>
+
+
+                                    </div>
+                                    <div class="card-footer text-center py-3">
+                                        <div class="small"><a href="login.html">Sudah Punya Akun? Silahkan login</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal Notifikasi Registrasi -->
+<div class="modal fade" id="registerSuccessModal" tabindex="-1" aria-labelledby="registerSuccessModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h5 class="modal-title mb-2" id="registerSuccessModalLabel">Registrasi Berhasil</h5>
+                <p class="text-muted">Silakan login menggunakan akun Anda.</p>
+                <a href="login.html" class="btn btn-success mt-3">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+                </main>
+            </div>
+           
+        </div>
+        <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="admin/js/scripts.js"></script>
+        <script>
+    // Cek URL untuk parameter "status=success"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSuccess = urlParams.get('status') === 'success';
+
+    if (isSuccess) {
+        const myModal = new bootstrap.Modal(document.getElementById('registerSuccessModal'));
+        myModal.show();
+    }
+</script>
+
+    </body>
+</html>

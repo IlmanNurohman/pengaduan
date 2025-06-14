@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Login - SB Admin</title>
+    <link href="admin/css/styles.css" rel="stylesheet" />
+      <link rel="stylesheet" href="admin/assets/fontawesome/css/all.min.css">
+      <link rel="stylesheet" href="css/bootstrap.min.css">
+      <link rel="stylesheet" href="css/bootstrap-icons.css">
+</head>
+
+<body class="bg-primary">
+    <div id="layoutAuthentication">
+        <div id="layoutAuthentication_content">
+            <main>
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-5">
+                            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                <div class="card-header">
+                                    <h3 class="text-center font-weight-light my-4">Login</h3>
+                                </div>
+                                <div class="card-body">
+                                   <form action="proses_login.php" method="POST">
+    <div class="mb-3">
+        <label for="inputUsername" class="form-label">Username</label>
+        <div class="input-group">
+            <span class="input-group-text" id="username-addon"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" id="inputUsername" name="username" placeholder="Masukkan Username" aria-describedby="username-addon" required>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="inputPassword" class="form-label">Password</label>
+        <div class="input-group">
+            <span class="input-group-text" id="password-addon"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="inputPassword" name="password" placeholder="Masukkan Password" aria-describedby="password-addon" required>
+        </div>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" id="inputRememberPassword" type="checkbox" value="" />
+        <label class="form-check-label" for="inputRememberPassword">Remember Password</label>
+    </div>
+    <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+        <a class="small" href="password.html">Lupa Password ?</a>
+        <button class="btn btn-primary" type="submit">Login</button>
+    </div>
+</form>
+
+                                </div>
+                                <div class="card-footer text-center py-3">
+                                    <div class="small">
+                                        <a href="register.html">Belum Punya akun ? Daftar Disini!</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous">
+    </script>
+    <script>
+    // Cek jika login berhasil dan ada data user dari server
+    if (sessionStorage.getItem('userData')) {
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        const dbRequest = indexedDB.open('LoginDB', 1);
+
+        dbRequest.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('users')) {
+                db.createObjectStore('users', { keyPath: 'username' });
+            }
+        };
+
+        dbRequest.onsuccess = function (event) {
+            const db = event.target.result;
+            const tx = db.transaction('users', 'readwrite');
+            const store = tx.objectStore('users');
+
+            store.put({
+                username: userData.username,
+                password: userData.password, // hash password
+                nama: userData.nama,
+                level: userData.level,
+                email: userData.email
+            });
+
+            tx.oncomplete = function () {
+                console.log('User disimpan untuk offline login.');
+                sessionStorage.removeItem('userData'); // Bersihkan
+            };
+        };
+    }
+</script>
+
+    
+</body>
+
+</html>

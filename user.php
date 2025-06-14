@@ -1,11 +1,12 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$host = "localhost";
+$host = "mysql.railway.internal";
 $user = "root";
-$pass = "";
-$db   = "pengaduan";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
 
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli($host, $user, $pass, $db, $port);
 
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
@@ -16,7 +17,7 @@ if (!isset($_SESSION['user_id'])) {
     die("Akses ditolak. Silakan login terlebih dahulu.");
 }
 $user_id = $_SESSION['user_id'];
-$query = mysqli_query($conn, "SELECT foto FROM users WHERE id = '$user_id'");
+$query = mysqli_query($koneksi, "SELECT foto FROM users WHERE id = '$user_id'");
 $data = mysqli_fetch_assoc($query);
 $foto = $data['foto'] ? $data['foto'] : 'default.png'; // fallback jika foto kosong
 
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 // Ambil data pengaduan user yang sedang login
 $sql = "SELECT * FROM laporan WHERE user_id = ?";
-$stmt = $conn->prepare($sql);
+$stmt = $koneksi->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();

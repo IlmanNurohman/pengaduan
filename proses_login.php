@@ -1,9 +1,18 @@
 <?php
 session_start();
-$koneksi = new mysqli("localhost", "root", "", "pengaduan");
+$host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
+
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
+
+// Cek koneksi
 if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';

@@ -1,17 +1,18 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "pengaduan";
+$host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
 
-// Membuat koneksi
-$conn = new mysqli($servername, $username, $password, $database);
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
 
 // Cek koneksi
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
 }
+
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['user_id'])) {

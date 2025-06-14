@@ -1,24 +1,25 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "pengaduan";
+$host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
 
-// Membuat koneksi
-$conn = new mysqli($servername, $username, $password, $database);
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
 
 // Cek koneksi
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
 }
+
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['user_id'])) {
     die("Akses ditolak. Silakan login terlebih dahulu.");
 }
 $user_id = $_SESSION['user_id'];
-$query = mysqli_query($conn, "SELECT foto FROM users WHERE id = '$user_id'");
+$query = mysqli_query($koneksi, "SELECT foto FROM users WHERE id = '$user_id'");
 $data = mysqli_fetch_assoc($query);
 $foto = $data['foto'] ? $data['foto'] : 'default.png'; // fallback jika foto kosong
 
@@ -145,7 +146,7 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                                 <tbody>
                                     <?php 
             $no = 1;
-            $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
+            $data = $koneksi->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
             while ($row = $data->fetch_assoc()) :
               $apbd_id = $row['id'];
               $rincian = $conn->query("SELECT * FROM apbd_rincian WHERE apbd_id = $apbd_id");

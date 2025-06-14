@@ -2,11 +2,18 @@
 // Pastikan ini hanya jalan saat form disubmit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Koneksi ke database
-    $koneksi = new mysqli("localhost", "root", "", "pengaduan");
+   $host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
 
-    if ($koneksi->connect_error) {
-        die("Koneksi gagal: " . $koneksi->connect_error);
-    }
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
+
+// Cek koneksi
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
+}
 
     // Ambil data dari form dengan pengecekan
     $username = $_POST['username'] ?? '';

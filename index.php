@@ -1,21 +1,33 @@
  <?php
 
  
-$conn = mysqli_connect("localhost", "root", "", "pengaduan");
+$host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
+
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
+
+// Cek koneksi
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
+}
+
 
 $tahun = $_GET['tahun'] ?? date('Y');
 
 // Ambil semua tahun
-$tahunQuery = mysqli_query($conn, "SELECT DISTINCT tahun_anggaran FROM apbd_desa ORDER BY tahun_anggaran DESC");
+$tahunQuery = mysqli_query($koneksi, "SELECT DISTINCT tahun_anggaran FROM apbd_desa ORDER BY tahun_anggaran DESC");
 
 // Ambil data APBD berdasarkan tahun
-$apbdQuery = mysqli_query($conn, "SELECT * FROM apbd_desa WHERE tahun_anggaran = '$tahun'");
+$apbdQuery = mysqli_query($koneksi, "SELECT * FROM apbd_desa WHERE tahun_anggaran = '$tahun'");
 $apbdData = mysqli_fetch_assoc($apbdQuery);
 $jumlah_total = $apbdData['jumlah_total'] ?? 0;
 $apbd_id = $apbdData['id'] ?? 0;
 
 // Ambil total rincian
-$rincianQuery = mysqli_query($conn, "SELECT kategori, jumlah FROM apbd_rincian WHERE apbd_id = '$apbd_id'");
+$rincianQuery = mysqli_query($koneksi, "SELECT kategori, jumlah FROM apbd_rincian WHERE apbd_id = '$apbd_id'");
 $rincianData = [];
 $total_rincian = 0;
 while ($row = mysqli_fetch_assoc($rincianQuery)) {
@@ -119,10 +131,19 @@ $pengeluaran = $total_rincian;
                          </div>
 
                          <?php
-                $koneksi = new mysqli("localhost", "root", "", "pengaduan");
-                if ($koneksi->connect_error) {
-                    die("Koneksi gagal: " . $koneksi->connect_error);
-                }
+                $host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
+
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
+
+// Cek koneksi
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
+}
+
 
                 $query = "SELECT * FROM staf_desa";
                 $result = $koneksi->query($query);

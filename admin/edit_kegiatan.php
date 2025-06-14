@@ -1,9 +1,17 @@
 <?php
-$host = "localhost";
+$host = "mysql.railway.internal";
 $user = "root";
-$pass = "";
-$db   = "pengaduan";
-$conn = new mysqli($host, $user, $pass, $db);
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
+
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
+
+// Cek koneksi
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
+}
+
 
 if (isset($_POST['update'])) {
     $id = $_POST['id'];

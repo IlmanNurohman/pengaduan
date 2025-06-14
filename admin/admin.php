@@ -86,18 +86,22 @@
                                 </thead>
                                 <tbody>
                                     <?php
-        $host = "localhost";
-        $user = "root";
-        $pass = "";
-        $db   = "pengaduan";
-        $conn = new mysqli($host, $user, $pass, $db);
+       $host = "mysql.railway.internal";
+$user = "root";
+$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
+$db   = "railway";
+$port = "3306";
 
-        if ($conn->connect_error) {
-            die("Koneksi gagal: " . $conn->connect_error);
-        }
+$koneksi = new mysqli($host, $user, $pass, $db, $port);
+
+// Cek koneksi
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
+}
+
 
         $no = 1;
-        $query = mysqli_query($conn, "SELECT * FROM users");
+        $query = mysqli_query($koneksi, "SELECT * FROM users");
         while ($data = mysqli_fetch_assoc($query)) {
         ?>
                                     <tr>

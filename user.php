@@ -391,7 +391,8 @@ $conn->close();
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-success">Kirim</button>
+                                    <button type="submit" class="btn btn-success" id="submitButton">Kirim</button>
+
                                 </div>
                             </form>
 
@@ -450,6 +451,19 @@ $conn->close();
             </div>
         </div>
 
+        <!-- Modal Proses Kirim -->
+        <div class="modal fade" id="prosesModal" tabindex="-1" aria-labelledby="prosesModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center">
+                    <div class="modal-body p-4">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Sedang mengirim pengaduan...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
 
@@ -474,9 +488,11 @@ $conn->close();
 
 
     <script>
-    // Tandai bahwa user baru saja login
+    // Tandai bahwa user login ulang
     localStorage.setItem('loginBaru', 'true');
+    sessionStorage.removeItem('baruKirimOffline');
     </script>
+
 
 
     <script>
@@ -507,8 +523,7 @@ $conn->close();
         async function syncOfflineData() {
             const db = await openIndexedDB();
             const all = await db.getAll("pengaduan");
-            let berhasilSync = false; // ✅ Deklarasi di sini!
-
+            let berhasilSync = false;
 
             for (const data of all) {
                 const formData = new FormData();
@@ -525,6 +540,7 @@ $conn->close();
                     if (response.ok) {
                         await db.delete("pengaduan", data.id);
                         console.log("✅ Data dikirim dan dihapus dari IndexedDB:", data);
+                        berhasilSync = true;
                     } else {
                         console.error("❌ Gagal kirim:", response.statusText);
                     }
@@ -532,19 +548,23 @@ $conn->close();
                     console.error("❌ Error kirim offline data:", err);
                 }
             }
-            // Tampilkan modal jika ada setidaknya satu data berhasil dikirim
+
             if (berhasilSync) {
                 sessionStorage.setItem("pengaduan_berhasil", "1");
-                location.reload(); // Refresh agar modal muncul via DOMContentLoaded
+                location.reload();
             }
         }
 
         const form = document.getElementById("pengaduanForm");
+        const prosesModal = new bootstrap.Modal(document.getElementById('prosesModal'));
+
         form.addEventListener("submit", async function(e) {
             e.preventDefault();
             const data = new FormData(form);
             const obj = {};
             data.forEach((val, key) => obj[key] = val);
+
+
 
             if (!navigator.onLine) {
                 try {
@@ -552,51 +572,65 @@ $conn->close();
                     await db.add("pengaduan", obj);
                     console.log("📦 Data DISIMPAN ke IndexedDB karena OFFLINE:", obj);
 
+                    prosesModal.hide();
                     const offlineModal = new bootstrap.Modal(document.getElementById(
                         'offlineModal'));
                     offlineModal.show();
-
-
                 } catch (err) {
+
                     alert("Gagal simpan offline: " + err.message);
                 }
             } else {
+                // Tampilkan modal proses
+                prosesModal.show();
                 try {
                     const response = await fetch("proses_pengaduan.php", {
                         method: "POST",
                         body: data
                     });
 
+                    prosesModal.hide();
+
                     if (response.ok) {
                         console.log("🟢 Data dikirim langsung tanpa masuk IndexedDB.");
-                        location.href = "user.php?pengaduan=berhasil";
+                        sessionStorage.setItem('baruKirimOffline', '1');
+
+                        const notifikasiModal = new bootstrap.Modal(document.getElementById(
+                            'notifikasiModal'));
+                        notifikasiModal.show();
+
+                        form.reset();
                     } else {
                         console.error("❌ Gagal kirim saat online.");
                         alert("Gagal mengirim pengaduan.");
                     }
                 } catch (err) {
+                    prosesModal.hide();
                     alert("Kesalahan saat kirim data: " + err.message);
                 }
             }
         });
 
+
+        // Jalankan sync jika online
         if (navigator.onLine) {
             await syncOfflineData();
         }
 
+        // Tampilkan modal jika sebelumnya berhasil sync
+        if (sessionStorage.getItem("pengaduan_berhasil") === "1") {
+            const notifikasiModal = new bootstrap.Modal(document.getElementById('notifikasiModal'));
+            notifikasiModal.show();
+            sessionStorage.removeItem("pengaduan_berhasil");
+        }
 
+        // Cek apakah ada data tertunda saat offline
         await checkPendingReports();
+
+        // Saat kembali online, lakukan sinkronisasi
         window.addEventListener("online", () => {
             console.log("🌐 Online kembali. Sinkronisasi data...");
             syncOfflineData();
-        });
-        // Saat halaman dimuat, tampilkan modal notifikasi jika pengaduan berhasil
-        document.addEventListener("DOMContentLoaded", () => {
-            if (sessionStorage.getItem("pengaduan_berhasil") === "1") {
-                sessionStorage.removeItem("pengaduan_berhasil");
-                const modal = new bootstrap.Modal(document.getElementById('notifikasiModal'));
-                modal.show();
-            }
         });
 
         async function checkPendingReports() {
@@ -605,25 +639,19 @@ $conn->close();
                 const all = await db.getAll("pengaduan");
 
                 const sudahLogin = sessionStorage.getItem('pengaduanLoginAktif');
+                const baruKirim = sessionStorage.getItem('baruKirimOffline');
 
-                // Hanya tampilkan modal jika user baru login (belum ada sesi login aktif)
-                if (all.length > 0 && !sudahLogin) {
+                if (all.length > 0 && !sudahLogin && !baruKirim) {
                     const offlineModal = new bootstrap.Modal(document.getElementById(
                         'offlineWarningModal'));
                     offlineModal.show();
-
-                    // Set status login agar modal tidak muncul lagi selama belum logout
                     sessionStorage.setItem('pengaduanLoginAktif', 'true');
                 }
             }
         }
 
-
     });
     </script>
-
-
-
 
 
 
@@ -699,23 +727,6 @@ $conn->close();
         });
     }
     </script>
-
-
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        if (sessionStorage.getItem("pengaduan_berhasil") === "1") {
-            sessionStorage.removeItem("pengaduan_berhasil");
-            const modal = new bootstrap.Modal(document.getElementById('notifikasiModal'));
-            modal.show();
-        }
-    });
-    </script>
-
-
-
-
-
-
 
 </body>
 

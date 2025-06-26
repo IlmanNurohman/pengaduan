@@ -1,7 +1,7 @@
  <?php
 
  
-$conn = mysqli_connect("localhost", "root", "", "pengaduan");
+$conn = mysqli_connect("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
 
 $tahun = $_GET['tahun'] ?? date('Y');
 

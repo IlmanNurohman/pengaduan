@@ -1,5 +1,6 @@
  <?php
-
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
  
 $conn = mysqli_connect("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
 

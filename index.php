@@ -60,7 +60,7 @@ $pengeluaran = $total_rincian;
 
      <link rel="stylesheet" href="css/owl.theme.default.min.css">
 
-     <link href="css/templatemo-pod-talk.css" rel="stylesheet">
+     <link rel="stylesheet" href="css/templatemo-pod-talk.css">
      <link rel="manifest" href="/manifest.json">
      <link rel="icon" href="/images/icon-192.png" type="image/png">
      <link rel="apple-touch-icon" href="/images/icon-192.png">

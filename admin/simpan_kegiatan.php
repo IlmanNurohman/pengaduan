@@ -1,5 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+$koneksi = new mysqli("127.0.0.1", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
 
 $nama_kegiatan = $_POST['nama_kegiatan'];
 $tanggal_kegiatan = $_POST['tanggal_kegiatan']; // ambil input tanggal

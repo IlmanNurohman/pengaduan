@@ -8,7 +8,7 @@ use PHPMailer\PHPMailer\Exception;
 require __DIR__ . '/vendor/autoload.php';  // sesuaikan path ke autoload.php
 
 // 1. Koneksi langsung
-$host = "localhost";
+$host = "127.0.0.1";
 $user = "u637089379_lapordesa";
 $pass = "Lapordesa123";
 $db   = "u637089379_lapordesa";

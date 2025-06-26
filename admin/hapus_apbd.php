@@ -1,5 +1,5 @@
 <?php
-$conn = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+$conn = new mysqli("127.0.0.1", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
 
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);

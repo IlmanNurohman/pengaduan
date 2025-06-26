@@ -1,6 +1,6 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$servername = "localhost";
+$servername = "127.0.0.1";
 $username = "root";
 $password = "";
 $database = "pengaduan";
@@ -342,7 +342,7 @@ while ($row = $tahunResult->fetch_assoc()) {
 
                                     <tbody>
                                         <?php
-        $koneksi = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+        $koneksi = new mysqli("127.0.0.1", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
         $query = "SELECT * FROM laporan WHERE status = 'Diterima'";
 
         $result = $koneksi->query($query);

@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $upd->execute();
 
     // 5. Siapkan link reset (sesuaikan jika di dalam folder /sekdes/)
-    $resetLink = "https://lapordesa.site/sekdes/reset-password.php?token=" . urlencode($token);
+    $resetLink = "https://lapordesa.site/reset-password.php?token=" . urlencode($token);
 
     // 6. Kirim email via SMTP Gmail
     $mail = new PHPMailer(true);

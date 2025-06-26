@@ -417,7 +417,7 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                                             new QRCode(document
                                                 .getElementById(
                                                     "qrcode"), {
-                                                    text: "https://lapordesa.site/sekdes/admin/verifikasi.php?id=" +
+                                                    text: "https://lapordesa.site/admin/verifikasi.php?id=" +
                                                         laporanId,
                                                     width: 128,
                                                     height: 128

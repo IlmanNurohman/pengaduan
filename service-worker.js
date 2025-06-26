@@ -7,7 +7,6 @@ const urlsToCache = [
   "/sekdes/detail_laporan.php",
   "/sekdes/login.html",
   "/sekdes/user.php",
-  "/sekdes/logout.php",
   "/sekdes/admin/index.php",
     "/sekdes/admin/daftar_laporan.php",
     "/sekdes/admin/detail.php",

@@ -1,6 +1,6 @@
 <?php
 session_start();
-$koneksi = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+$koneksi = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123", "u637089379_lapordesa");
 if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
 }

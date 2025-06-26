@@ -35,7 +35,8 @@ if ($result->num_rows === 1) {
     $user = $result->fetch_assoc();
 
     // Cek password (disesuaikan jika pakai hash)
-    if ($user['password'] === $password) {
+   if ($user['password'] === hash('sha256', $password))
+ {
         $_SESSION['username'] = $user['username'];
         $_SESSION['level'] = $user['level'];
 

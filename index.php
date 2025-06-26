@@ -370,7 +370,7 @@ if ($result->num_rows === 0) {
 
             if ($result && $result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
-                   $imgPath = !empty($row['foto']) ? 'uploads/' . $row['foto'] : 'images/default.jpg';
+                   $imgPath = !empty($row['foto']) ? 'uploads/' . $row['foto'] : 'images/profile/man-potrait.jpg';
 
             ?>
                      <div class="col-lg-4 col-12 mb-4 mb-lg-0">

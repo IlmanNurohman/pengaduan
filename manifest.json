@@ -1,12 +1,12 @@
 {
   "name": "Web Pengaduan Masyarakat",
   "short_name": "Pengaduan",
-  "start_url": "/sekdes/index.php",
+  "start_url": "/index.php",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2196f3",
   "orientation": "portrait",
-  "scope": "/sekdes/",
+  "scope": "/",
   "icons": [
     {
       "src": "images/icon-192.png",

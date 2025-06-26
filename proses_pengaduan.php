@@ -5,7 +5,7 @@ use PHPMailer\PHPMailer\PHPMailer;
         use PHPMailer\PHPMailer\Exception;
 require 'vendor/autoload.php'; // PHPMailer autoload
 
-$host = "127.0.0.1";
+$host = "localhost";
 $user = "u637089379_lapordesa";
 $pass = "Lapordesa123";
 $db   = "u637089379_lapordesa";

@@ -1,6 +1,6 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$servername = "127.0.0.1";
+$servername = "localhost";
 $username = "root";
 $password = "";
 $database = "pengaduan";

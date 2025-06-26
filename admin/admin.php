@@ -87,7 +87,7 @@
                                 </thead>
                                 <tbody>
                                     <?php
-        $host = "127.0.0.1";
+        $host = "localhost";
         $user = "u637089379_lapordesa";
         $pass = "Lapordesa123";
         $db   = "u637089379_lapordesa";

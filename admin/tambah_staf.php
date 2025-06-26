@@ -1,6 +1,6 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$servername = "127.0.0.1";
+$servername = "localhost";
 $username = "root";
 $password = "";
 $database = "pengaduan";
@@ -148,7 +148,7 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                                 </thead>
                                 <tbody>
                                     <?php
-        $host = "127.0.0.1";
+        $host = "localhost";
         $user = "u637089379_lapordesa";
         $pass = "Lapordesa123";
         $db   = "u637089379_lapordesa";

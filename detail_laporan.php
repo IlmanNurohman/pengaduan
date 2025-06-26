@@ -99,7 +99,7 @@ https://templatemo.com/tm-584-pod-talk
 
         <?php
 // Koneksi langsung ke database
-$servername = "127.0.0.1";
+$servername = "localhost";
 $username = "root"; // Ganti jika bukan root
 $password = "";     // Ganti sesuai password MySQL kamu
 $database = "pengaduan";

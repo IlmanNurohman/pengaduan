@@ -1,6 +1,6 @@
 <?php
 // Koneksi langsung ke database
-$host = "127.0.0.1";     // Ganti jika berbeda
+$host = "localhost";     // Ganti jika berbeda
 $user = "u637089379_lapordesa";          // Username MySQL
 $pass = "Lapordesa123";              // Password MySQL
 $db   = "u637089379_lapordesa"; // Ganti dengan nama database kamu

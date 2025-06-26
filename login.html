@@ -56,90 +56,103 @@
   </div>
 
   <script src="js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Simpan data ke IndexedDB jika login online berhasil
-    if (sessionStorage.getItem('userData')) {
-      const userData = JSON.parse(sessionStorage.getItem('userData'));
+ <script>
+  // Simpan data ke IndexedDB jika login online berhasil
+  if (sessionStorage.getItem('userData')) {
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    const dbRequest = indexedDB.open('LoginDB', 1);
+
+    dbRequest.onupgradeneeded = function (event) {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('users')) {
+        db.createObjectStore('users', { keyPath: 'username' });
+      }
+    };
+
+    dbRequest.onsuccess = function (event) {
+      const db = event.target.result;
+      const tx = db.transaction('users', 'readwrite');
+      const store = tx.objectStore('users');
+      store.put(userData);
+
+      tx.oncomplete = function () {
+        console.log('User disimpan untuk offline login.');
+        sessionStorage.removeItem('userData');
+      };
+    };
+  }
+
+  // Tangani login form
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const username = document.getElementById('inputUsername').value;
+    const password = document.getElementById('inputPassword').value;
+
+    if (navigator.onLine) {
+      // Kirim ke server saat online
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+
+      fetch('proses_login.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Simpan session untuk disimpan ke IndexedDB nanti
+          sessionStorage.setItem('userData', JSON.stringify(data.user));
+          alert("Login berhasil! Mengarahkan...");
+          if (data.user.level === 'admin') {
+            location.href = 'admin/index.php';
+          } else {
+            location.href = 'user.php';
+          }
+        } else {
+          alert('Login gagal: ' + data.message);
+        }
+      })
+      .catch(() => alert('Gagal menghubungi server.'));
+    } else {
+      // Offline: login via IndexedDB
       const dbRequest = indexedDB.open('LoginDB', 1);
 
-      dbRequest.onupgradeneeded = function (event) {
+      dbRequest.onsuccess = async function (event) {
         const db = event.target.result;
-        if (!db.objectStoreNames.contains('users')) {
-          db.createObjectStore('users', { keyPath: 'username' });
-        }
-      };
-
-      dbRequest.onsuccess = function (event) {
-        const db = event.target.result;
-        const tx = db.transaction('users', 'readwrite');
+        const tx = db.transaction('users', 'readonly');
         const store = tx.objectStore('users');
-        store.put(userData);
+        const getRequest = store.get(username);
 
-        tx.oncomplete = function () {
-          console.log('User disimpan untuk offline login.');
-          sessionStorage.removeItem('userData');
-        };
-      };
-    }
+        getRequest.onsuccess = async function () {
+          const user = getRequest.result;
+          if (!user) return alert("User tidak ditemukan (offline)");
 
-    // Tangani login form
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const username = document.getElementById('inputUsername').value;
-      const password = document.getElementById('inputPassword').value;
-
-      if (navigator.onLine) {
-        // Kirim ke server saat online
-        const formData = new FormData();
-        formData.append('username', username);
-        formData.append('password', password);
-
-        fetch('proses_login.php', {
-          method: 'POST',
-          body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'success') {
-            // Simpan session untuk disimpan ke IndexedDB nanti
-            sessionStorage.setItem('userData', JSON.stringify(data.user));
-            alert("Login berhasil! Mengarahkan...");
-            if (data.user.level === 'admin') {
+          const inputHash = await sha256(password);
+          if (user.password === inputHash) {
+            alert('Login offline berhasil!');
+            if (user.level === 'admin') {
               location.href = 'admin/index.php';
             } else {
               location.href = 'user.php';
             }
           } else {
-            alert('Login gagal: ' + data.message);
+            alert('Password salah (offline)');
           }
-        })
-        .catch(() => alert('Gagal menghubungi server.'));
-      } else {
-        // Offline: login via IndexedDB
-        const dbRequest = indexedDB.open('LoginDB', 1);
-
-        dbRequest.onsuccess = function (event) {
-          const db = event.target.result;
-          const tx = db.transaction('users', 'readonly');
-          const store = tx.objectStore('users');
-          const getRequest = store.get(username);
-
-          getRequest.onsuccess = function () {
-            const user = getRequest.result;
-            if (user && user.password === password) {
-              alert('Login offline berhasil!');
-              if (user.level === 'admin') {
-                location.href = 'admin/index.php';
-              } else {
-                location.href = 'user.php';
-              }
-            } else {
-              alert('Login offline gagal. Username atau password salah.');
-            }
-          };
         };
-      }
-    });
-  </script>
+      };
+    }
+  });
+
+  // Hash password dengan SHA-256
+  async function sha256(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+</script>
+
 </body>
 </html>

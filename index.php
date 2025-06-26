@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
  
-$conn = mysqli_connect("127.0.0.1", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+$conn = mysqli_connect("127.0.0.1", "u637089379_lapordesa", "Lapordesa123","u637089379_lapordesa");
 
 $tahun = $_GET['tahun'] ?? date('Y');
 
@@ -120,7 +120,7 @@ $pengeluaran = $total_rincian;
                          </div>
 
                          <?php
-                $koneksi = new mysqli("127.0.0.1", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+                $koneksi = new mysqli("127.0.0.1", "u637089379_lapordesa", "Lapordesa123" , "u637089379_lapordesa");
                 if ($koneksi->connect_error) {
                     die("Koneksi gagal: " . $koneksi->connect_error);
                 }

@@ -342,7 +342,7 @@ while ($row = $tahunResult->fetch_assoc()) {
 
                                     <tbody>
                                         <?php
-        $koneksi = new mysqli("localhost", "root", "", "pengaduan");
+        $koneksi = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
         $query = "SELECT * FROM laporan WHERE status = 'Diterima'";
 
         $result = $koneksi->query($query);

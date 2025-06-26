@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-$conn = new mysqli("localhost", "root", "", "pengaduan");
+$conn = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
 if ($conn->connect_error) {
     die(json_encode(['error' => 'Koneksi gagal']));
 }

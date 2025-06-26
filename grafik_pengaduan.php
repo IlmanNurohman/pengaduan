@@ -1,5 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "u637089379_lapordesa", "u637089379_lapordesa", "Lapordesa123");
+$koneksi = new mysqli("localhost", "u637089379_lapordesa", "Lapordesa123", "u637089379_lapordesa" );
 
 $query = "SELECT MONTH(tanggal_lapor) AS bulan, COUNT(*) AS jumlah 
           FROM laporan 

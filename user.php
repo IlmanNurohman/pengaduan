@@ -542,8 +542,8 @@ $conn->close();
         async function openIndexedDB() {
             return await openDB("pengaduan-db", 1, {
                 upgrade(db) {
-                    if (!db.objectStoreNames.contains("pengaduan")) {
-                        db.createObjectStore("pengaduan", {
+                    if (!db.objectStoreNames.contains("u637089379_lapordesa")) {
+                        db.createObjectStore("u637089379_lapordesa", {
                             keyPath: "id",
                             autoIncrement: true
                         });
@@ -554,7 +554,7 @@ $conn->close();
 
         async function syncOfflineData() {
             const db = await openIndexedDB();
-            const all = await db.getAll("pengaduan");
+            const all = await db.getAll("u637089379_lapordesa");
             let berhasilSync = false;
 
             for (const data of all) {
@@ -570,7 +570,7 @@ $conn->close();
                     });
 
                     if (response.ok) {
-                        await db.delete("pengaduan", data.id);
+                        await db.delete("u637089379_lapordesa", data.id);
                         console.log("✅ Data dikirim dan dihapus dari IndexedDB:", data);
                         berhasilSync = true;
                     } else {
@@ -599,7 +599,7 @@ $conn->close();
             if (!navigator.onLine) {
                 try {
                     const db = await openIndexedDB();
-                    await db.add("pengaduan", obj);
+                    await db.add("u637089379_lapordesa", obj);
                     console.log("📦 Data DISIMPAN ke IndexedDB karena OFFLINE:", obj);
                     sessionStorage.setItem('baruSimpanOffline', '1');
 
@@ -673,7 +673,7 @@ $conn->close();
         async function checkPendingReports() {
             if (!navigator.onLine) {
                 const db = await openIndexedDB();
-                const all = await db.getAll("pengaduan");
+                const all = await db.getAll("u637089379_lapordesa");
 
                 const sudahLogin = sessionStorage.getItem('pengaduanLoginAktif');
                 const baruKirim = sessionStorage.getItem('baruKirimOffline');

@@ -1,9 +1,9 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
 $servername = "localhost";
-$username = "root";
-$password = "";
-$database = "pengaduan";
+$username = "u637089379_lapordesa";
+$password = "Lapordesa123";
+$database = "u637089379_lapordesa";
 
 // Membuat koneksi
 $conn = new mysqli($servername, $username, $password, $database);

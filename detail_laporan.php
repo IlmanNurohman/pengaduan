@@ -100,9 +100,9 @@ https://templatemo.com/tm-584-pod-talk
         <?php
 // Koneksi langsung ke database
 $servername = "localhost";
-$username = "root"; // Ganti jika bukan root
-$password = "";     // Ganti sesuai password MySQL kamu
-$database = "pengaduan";
+$username = "u637089379_lapordesa"; // Ganti jika bukan u637089379_lapordesa
+$password = "Lapordesa123";     // Ganti sesuai password MySQL kamu
+$database = "u637089379_lapordesa";
 
 $conn = new mysqli($servername, $username, $password, $database);
 

@@ -6,7 +6,7 @@ $tanggal_kegiatan = $_POST['tanggal_kegiatan']; // ambil input tanggal
 $foto = $_FILES['foto']['name'];
 $tmp = $_FILES['foto']['tmp_name'];
 
-$folder = "../uploads/"; // menyimpan di folder uploads di root
+$folder = "../uploads/"; // menyimpan di folder uploads di u637089379_lapordesa
 $path_foto = $folder . basename($foto);
 
 if (move_uploaded_file($tmp, $path_foto)) {

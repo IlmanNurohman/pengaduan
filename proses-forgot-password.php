@@ -1,5 +1,5 @@
 <?php
-// Jika belum ada, jalankan di root project:
+// Jika belum ada, jalankan di u637089379_lapordesa project:
 // composer require phpmailer/phpmailer
 
 use PHPMailer\PHPMailer\PHPMailer;

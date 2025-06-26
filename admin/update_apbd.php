@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$user = 'root';
+$user = 'u637089379_lapordesa';
 $pass = '';
 $db   = 'pengaduan';
 

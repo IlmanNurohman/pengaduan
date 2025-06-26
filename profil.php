@@ -1,18 +1,17 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "pengaduan";
 
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
+// Membuat koneksi
+$conn = new mysqli($servername, $username, $password, $database);
 
 // Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
-
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['user_id'])) {
@@ -132,7 +131,12 @@ if (isset($_POST['simpan'])) {
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="index.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
+                    </li>
                 </ul>
             </li>
         </ul>
@@ -275,6 +279,26 @@ if (isset($_POST['simpan'])) {
                                 <p class="text-muted">Perubahan profil Anda telah disimpan.</p>
                                 <button type="button" class="btn btn-success mt-3"
                                     data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Konfirmasi Logout -->
+                <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <a href="logout.php" class="btn btn-danger">Ya</a>
+                                </div>
                             </div>
                         </div>
                     </div>

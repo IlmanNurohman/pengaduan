@@ -1,25 +1,24 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "pengaduan";
 
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
+// Membuat koneksi
+$conn = new mysqli($servername, $username, $password, $database);
 
 // Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
-
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['user_id'])) {
     die("Akses ditolak. Silakan login terlebih dahulu.");
 }
 $user_id = $_SESSION['user_id'];
-$query = mysqli_query($koneksi, "SELECT foto FROM users WHERE id = '$user_id'");
+$query = mysqli_query($conn, "SELECT foto FROM users WHERE id = '$user_id'");
 $data = mysqli_fetch_assoc($query);
 $foto = $data['foto'] ? $data['foto'] : 'default.png'; // fallback jika foto kosong
 
@@ -71,7 +70,13 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="../index.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
+                    </li>
+
                 </ul>
             </li>
         </ul>
@@ -146,24 +151,91 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                                 <tbody>
                                     <?php 
             $no = 1;
-            $data = $koneksi->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
+            $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
             while ($row = $data->fetch_assoc()) :
-              $apbd_id = $row['id'];
-              $rincian = $conn->query("SELECT * FROM apbd_rincian WHERE apbd_id = $apbd_id");
+                $apbd_id = $row['id'];
+                $rincian_query = $conn->query("SELECT * FROM apbd_rincian WHERE apbd_id = $apbd_id");
+                $rincian_data = [];
+                while ($r = $rincian_query->fetch_assoc()) {
+                    $rincian_data[] = $r;
+                }
             ?>
                                     <tr>
-                                        <td class="text-center"><?= $no++ ?></td>
-                                        <td class="text-center"><?= $row['tahun_anggaran'] ?></td>
-                                        <td class="text-center"><?= number_format($row['jumlah_total'], 0, ',', '.') ?>
-                                        </td>
+                                        <td><?= $no++ ?></td>
+                                        <td><?= $row['tahun_anggaran'] ?></td>
+                                        <td>Rp. <?= number_format($row['jumlah_total'], 0, ',', '.') ?></td>
                                         <td>
-                                            <!-- Tombol buka modal -->
                                             <button class="btn btn-info btn-sm" type="button" data-bs-toggle="modal"
-                                                data-bs-target="#modalRincian<?= $apbd_id ?>">
-                                                Lihat Rincian
-                                            </button>
+                                                data-bs-target="#modalRincian<?= $apbd_id ?>">Lihat Rincian</button>
+                                            <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="modal"
+                                                data-bs-target="#modalEdit<?= $apbd_id ?>">Edit</button>
+                                            <button class="btn btn-danger btn-sm" type="button"
+                                                onclick="confirmHapusApbd(<?= $apbd_id ?>)">Hapus</button>
                                         </td>
                                     </tr>
+
+                                    <!-- Modal Edit -->
+                                    <div class="modal fade" id="modalEdit<?= $apbd_id ?>" tabindex="-1"
+                                        aria-labelledby="modalEditLabel<?= $apbd_id ?>" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <form action="update_apbd.php" method="POST">
+                                                    <input type="hidden" name="apbd_id" value="<?= $apbd_id ?>">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Edit APBD Tahun
+                                                            <?= $row['tahun_anggaran'] ?></h5>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Tahun Anggaran</label>
+                                                            <input type="number" name="tahun" class="form-control"
+                                                                value="<?= $row['tahun_anggaran'] ?>" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Jumlah Total APBD</label>
+                                                            <input type="number" name="jumlah_total"
+                                                                class="form-control" value="<?= $row['jumlah_total'] ?>"
+                                                                required>
+                                                        </div>
+                                                        <hr>
+                                                        <h6>Rincian Penggunaan Dana</h6>
+                                                        <div id="edit-rincian-container-<?= $apbd_id ?>">
+                                                            <?php foreach ($rincian_data as $r) : ?>
+                                                            <div class="row mb-2 rincian-group">
+                                                                <div class="col-md-6">
+                                                                    <input type="text" name="kategori[]"
+                                                                        class="form-control"
+                                                                        value="<?= htmlspecialchars($r['kategori']) ?>"
+                                                                        required>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <input type="number" name="jumlah[]"
+                                                                        class="form-control" value="<?= $r['jumlah'] ?>"
+                                                                        required>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <button type="button"
+                                                                        class="btn btn-danger remove-rincian">Hapus</button>
+                                                                </div>
+                                                            </div>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-secondary"
+                                                            onclick="tambahEditRincian('<?= $apbd_id ?>')">+ Tambah
+                                                            Rincian</button>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-success">Simpan
+                                                            Perubahan</button>
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Tutup</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- Modal Rincian -->
                                     <div class="modal fade" id="modalRincian<?= $apbd_id ?>" tabindex="-1"
@@ -172,23 +244,24 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <h5 class="modal-title" id="modalRincianLabel<?= $apbd_id ?>">
-                                                        Rincian APBD Tahun <?= $row['tahun_anggaran'] ?></h5>
+                                                        Rincian APBD Tahun <?= $row['tahun_anggaran'] ?>
+                                                    </h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                         aria-label="Tutup"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <p><strong>Tahun Anggaran:</strong>
-                                                        <?= $row['tahun_anggaran'] ?>
+                                                    <p><strong>Tahun Anggaran:</strong> <?= $row['tahun_anggaran'] ?>
                                                     </p>
-                                                    <p><strong>Jumlah Total:</strong> Rp
-                                                        <?= number_format($row['jumlah_total'], 0, ',', '.') ?></p>
+                                                    <p><strong>Jumlah Total:</strong> Rp.
+                                                        <?= number_format($row['jumlah_total'], 0, ',', '.') ?>
+                                                    </p>
                                                     <hr>
                                                     <p><strong>Rincian Penggunaan Dana:</strong></p>
                                                     <ul>
-                                                        <?php while ($r = $rincian->fetch_assoc()) : ?>
-                                                        <li><?= htmlspecialchars($r['kategori']) ?>: Rp
+                                                        <?php foreach ($rincian_data as $r) : ?>
+                                                        <li><?= htmlspecialchars($r['kategori']) ?>: Rp.
                                                             <?= number_format($r['jumlah'], 0, ',', '.') ?></li>
-                                                        <?php endwhile; ?>
+                                                        <?php endforeach; ?>
                                                     </ul>
                                                 </div>
                                                 <div class="modal-footer">
@@ -202,6 +275,7 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                                 </tbody>
                             </table>
                         </div>
+
 
 
                         <!-- Modal Tambah APBD -->
@@ -275,7 +349,49 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                             </div>
                         </div>
                     </div>
+                    <!-- Modal Konfirmasi Hapus -->
+                    <div class="modal fade" id="modalHapusApbd" tabindex="-1" aria-labelledby="modalHapusLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content text-center p-4">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <i class="bi bi-exclamation-circle-fill text-danger"
+                                            style="font-size: 3rem;"></i>
+                                    </div>
+                                    <h5 class="modal-title mb-2" id="modalHapusLabel">Konfirmasi Hapus</h5>
+                                    <p class="text-muted">Yakin ingin menghapus data APBD ini?</p>
+                                    <form id="formHapusApbd">
+                                        <input type="hidden" name="apbd_id" id="hapusApbdId">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-danger">Hapus</button>
+                                    </form>
 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Konfirmasi Logout -->
+                    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content text-center p-4">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                    </div>
+                                    <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+                                    <div class="d-flex justify-content-center gap-3 mt-3">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Batal</button>
+                                        <a href="../logout.php" class="btn btn-danger">Ya</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
             </main>
             <footer class="py-4 bg-light mt-auto">
                 <div class="container-fluid px-4">
@@ -320,16 +436,29 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
         notifModal.show();
 
         const modalElement = document.getElementById('notifModal');
+
+        // 🔁 Pastikan hanya dijalankan sekali tiap modal show
         modalElement.addEventListener('hidden.bs.modal', function() {
             if (callback) callback();
+        }, {
+            once: true
         });
     }
+
 
     document.addEventListener('DOMContentLoaded', () => {
         if (getQueryParam('sukses') === '1') {
             showNotifModal('Berhasil', 'Data APBD berhasil disimpan!', true, () => {
                 const url = new URL(window.location);
                 url.searchParams.delete('sukses');
+                window.history.replaceState({}, document.title, url);
+            });
+        }
+
+        if (getQueryParam('edit') === '1') {
+            showNotifModal('Berhasil', 'Data APBD berhasil diperbarui!', true, () => {
+                const url = new URL(window.location);
+                url.searchParams.delete('edit');
                 window.history.replaceState({}, document.title, url);
             });
         }
@@ -385,6 +514,73 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
         }
     });
     </script>
+    <script>
+    function tambahEditRincian(id) {
+        const container = document.getElementById('edit-rincian-container-' + id);
+        const div = document.createElement('div');
+        div.classList.add('row', 'mb-2', 'rincian-group');
+        div.innerHTML = `
+        <div class="col-md-6">
+            <input type="text" name="kategori[]" class="form-control" placeholder="Kategori" required>
+        </div>
+        <div class="col-md-4">
+            <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah (Rp)" required>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger remove-rincian">Hapus</button>
+        </div>`;
+        container.appendChild(div);
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-rincian')) {
+            e.target.closest('.rincian-group').remove();
+        }
+    });
+    </script>
+    <script>
+    document.getElementById('formHapusApbd').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const apbdId = document.getElementById('hapusApbdId').value;
+
+        fetch('hapus_apbd.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'apbd_id=' + encodeURIComponent(apbdId)
+            })
+            .then(response => response.text())
+            .then(response => {
+                // Tutup modal konfirmasi
+                const modalHapus = bootstrap.Modal.getInstance(document.getElementById('modalHapusApbd'));
+                modalHapus.hide();
+
+                // Tampilkan modal sukses
+                showNotifModal('Berhasil', 'Data APBD berhasil dihapus!', true, () => {
+                    // Reload halaman setelah klik OK
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Gagal menghapus:', error);
+                showNotifModal('Gagal', 'Terjadi kesalahan saat menghapus data.', false);
+            });
+    });
+    </script>
+    <script>
+    function confirmHapusApbd(apbdId) {
+        // Isi input hidden di modal dengan ID yang akan dihapus
+        document.getElementById('hapusApbdId').value = apbdId;
+
+        // Tampilkan modal konfirmasi hapus
+        const modal = new bootstrap.Modal(document.getElementById('modalHapusApbd'));
+        modal.show();
+    }
+    </script>
+
+
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         let dbApbd;
@@ -445,7 +641,13 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                 sendApbdToServer(apbdData);
             } else {
                 saveApbdToIndexedDB(apbdData);
-                alert("Offline: Data APBD disimpan sementara. Akan dikirim saat online.");
+                showNotifModal(
+                    'Offline',
+                    'Data APBD disimpan sementara. Akan dikirim saat online.',
+                    true
+                );
+
+
 
                 // ✅ Reset form
                 form.reset();
@@ -463,6 +665,56 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                 if (modal) modal.hide();
             }
         });
+        document.querySelectorAll('form[action="update_apbd.php"]').forEach(function(form) {
+            form.addEventListener("submit", function(e) {
+                e.preventDefault();
+
+                const apbd_id = form.apbd_id.value;
+                const tahun = form.tahun.value;
+                const jumlah_total = form.jumlah_total.value;
+
+                const kategoriInputs = form.querySelectorAll('input[name="kategori[]"]');
+                const jumlahInputs = form.querySelectorAll('input[name="jumlah[]"]');
+
+                let rincian = [];
+                for (let i = 0; i < kategoriInputs.length; i++) {
+                    rincian.push({
+                        kategori: kategoriInputs[i].value,
+                        jumlah: jumlahInputs[i].value
+                    });
+                }
+
+                const apbdEditData = {
+                    id_apbd: parseInt(apbd_id),
+                    tahun: parseInt(tahun),
+                    jumlah_total: parseInt(jumlah_total),
+                    rincian: rincian,
+                    offline_edit: true, // penanda bahwa ini hasil edit offline
+                    timestamp: Date.now()
+                };
+
+                if (navigator.onLine) {
+                    sendApbdToServer(apbdEditData, "update_apbd.php");
+
+                } else {
+                    saveApbdEditToIndexedDB(apbdEditData);
+                    showNotifModal('Offline',
+                        'Perubahan APBD disimpan sementara. Akan dikirim saat online.', true
+                    );
+                }
+
+                // Tutup modal Bootstrap (jika perlu)
+                const modalElement = form.closest('.modal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) modalInstance.hide();
+            });
+        });
+
+        function saveApbdEditToIndexedDB(data) {
+            const tx = dbApbd.transaction("apbd", "readwrite");
+            const store = tx.objectStore("apbd");
+            store.put(data); // pakai `put` untuk update jika id sama
+        }
 
 
         function saveApbdToIndexedDB(data) {
@@ -478,20 +730,31 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
 
             getAll.onsuccess = function() {
                 const allData = getAll.result;
+
                 if (!allData.length) return;
 
                 allData.forEach((data) => {
-                    sendApbdToServer(data, () => {
+                    const isEdit = data.offline_edit === true;
+                    const url = isEdit ? "update_apbd.php" : "simpan_apbd.php";
+
+                    sendApbdToServer(data, url, () => {
                         const delTx = dbApbd.transaction("apbd", "readwrite");
                         const delStore = delTx.objectStore("apbd");
                         delStore.delete(data.id);
+
+                        // Jika semua data sudah dikirim, reload halaman
+                        delTx.oncomplete = () => {
+                            location
+                                .reload(); // Refresh tampilan setelah semua data offline dikirim
+                        };
                     });
                 });
             };
         }
 
-        function sendApbdToServer(data, callback = () => {}) {
-            fetch("simpan_apbd.php", {
+
+        function sendApbdToServer(data, url = "simpan_apbd.php", callback = () => {}) {
+            fetch(url, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -502,43 +765,20 @@ $data = $conn->query("SELECT * FROM apbd_desa ORDER BY tahun_anggaran DESC");
                 .then(response => {
                     console.log("Server response:", response);
 
-                    // Inisialisasi dan tampilkan modal
-                    var myModal = new bootstrap.Modal(document.getElementById('notifModal'));
+                    // ❗ Tambahkan reload setelah notifikasi OK ditekan
+                    showNotifModal("Berhasil", "Data APBD berhasil dikirim!", true, () => {
+                        location.reload(); // Reload setelah OK
+                    });
 
-                    // Set isi modal
-                    document.getElementById('notifModalLabel').textContent = "Berhasil";
-                    document.getElementById('notifMessage').textContent = "Data APBD berhasil disimpan!";
-                    document.getElementById('notifIcon').className = "bi bi-check-circle-fill text-success";
-
-                    // Tampilkan modal
-                    myModal.show();
-
-                    // Tambahkan event listener untuk tombol OK di modal
-                    document.querySelector('#notifModal .btn-success').addEventListener('click',
-                        function() {
-                            // Callback function (misalnya redirect atau refresh table)
-                            if (typeof callback === 'function') {
-                                callback();
-                            }
-                            // Redirect ke halaman apbd.php
-                            window.location.href = 'apbd.php';
-                        }, {
-                            once: true
-                        }); // once:true agar listener hanya terpanggil sekali
+                    callback(); // tetap panggil callback jika ada
                 })
-
                 .catch(err => {
                     console.error("Gagal kirim APBD ke server:", err);
-
-                    // Panggil modal gagal
-                    var myModal = new bootstrap.Modal(document.getElementById('notifModal'));
-                    document.getElementById('notifModalLabel').textContent = "Gagal";
-                    document.getElementById('notifMessage').textContent =
-                        "Gagal mengirim data APBD ke server.";
-                    document.getElementById('notifIcon').className = "bi bi-x-circle-fill text-danger";
-                    myModal.show();
+                    showNotifModal("Gagal", "Gagal mengirim data ke server.", false);
                 });
         }
+
+
 
 
         window.addEventListener("online", syncOfflineApbd);

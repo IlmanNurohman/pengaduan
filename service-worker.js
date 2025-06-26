@@ -1,8 +1,10 @@
 const CACHE_NAME = "pengaduan-cache-v2"; // Naikkan versi setiap ada perubahan cache
 
 const urlsToCache = [
-  "/sekdes/index.php", // statis masih bisa
+  "/sekdes/index.php", 
   "/sekdes/about.php",
+  "/sekdes/contact.html",
+  "/sekdes/detail_laporan.php",
   "/sekdes/login.html",
   "/sekdes/user.php",
   "/sekdes/logout.php",
@@ -38,6 +40,7 @@ const urlsToCache = [
    "/sekdes/admin/js/tanggapan-offline.js",
    "/sekdes/admin/js/bootstrap.bundle.min.js",
    "/sekdes/js/html2pdf.bundle.min.js",
+   "/sekdes/admin/js/jspdf.umd.min.js",
    
   "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
   

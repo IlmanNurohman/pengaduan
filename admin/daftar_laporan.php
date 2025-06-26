@@ -1,25 +1,24 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "pengaduan";
 
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
+// Membuat koneksi
+$conn = new mysqli($servername, $username, $password, $database);
 
 // Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
-
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['user_id'])) {
     die("Akses ditolak. Silakan login terlebih dahulu.");
 }
 $user_id = $_SESSION['user_id'];
-$query = mysqli_query($koneksi, "SELECT foto FROM users WHERE id = '$user_id'");
+$query = mysqli_query($conn, "SELECT foto FROM users WHERE id = '$user_id'");
 $data = mysqli_fetch_assoc($query);
 $foto = $data['foto'] ? $data['foto'] : 'default.png'; // fallback jika foto kosong
 
@@ -78,7 +77,13 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="../index.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
+                    </li>
+
                 </ul>
             </li>
         </ul>
@@ -146,22 +151,9 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                                 </thead>
                                 <tbody>
                                     <?php
-        $host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
-
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
-
-// Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
-
 
         $no = 1;
-        $query = mysqli_query($koneksi, "SELECT * FROM laporan");
+        $query = mysqli_query($conn, "SELECT * FROM laporan");
         while ($data = mysqli_fetch_assoc($query)) {
         ?>
                                     <tr>
@@ -184,42 +176,80 @@ if ($koneksi->connect_error) {
                                                 data-id="<?= $data['id'] ?>">Lihat</a>
                                         </td>
                                     </tr>
+                                    <!-- Modal Detail -->
+                                    <div class="modal fade" id="detailModal" tabindex="-1"
+                                        aria-labelledby="detailModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title text-center" id="detailModalLabel">Detail
+                                                        Laporan</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Tutup"></button>
+                                                </div>
+
+                                                <div class="modal-body" id="modalContent">
+                                                    <!-- Konten detail akan dimuat lewat AJAX -->
+                                                    <div class="text-center">Memuat data...</div>
+                                                </div>
+                                                <?php if (isset($data['status']) && strtolower($data['status']) == 'diterima'): ?>
+                                                <div class="modal-footer">
+                                                    <div class="text-end w-100">
+                                                        <button class="btn btn-primary w-auto"
+                                                            onclick="printPDF()">Cetak
+                                                            PDF</button>
+                                                    </div>
+                                                </div>
+                                                <?php endif; ?>
+
+                                            </div>
+                                        </div>
+                                    </div>
                                     <?php } ?>
                                 </tbody>
                             </table>
 
                         </div>
-                        <!-- Modal Detail -->
-                        <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
 
-                                    <div class="modal-header">
-                                        <h5 class="modal-title text-center" id="detailModalLabel">Detail Laporan</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Tutup"></button>
-                                    </div>
-
-                                    <div class="modal-body" id="modalContent">
-                                        <!-- Konten detail akan dimuat lewat AJAX -->
-                                        <div class="text-center">Memuat data...</div>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <div class="text-end w-100">
-                                            <button class="btn btn-primary w-auto" onclick="printPDF()">Cetak
-                                                PDF</button>
-                                        </div>
-                                    </div>
-
-
-                                </div>
-                            </div>
-                        </div>
 
                     </div>
                 </div>
+                <div class="modal fade" id="editSuccessModal" tabindex="-1" aria-labelledby="editSuccessModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="editSuccessModalLabel"></h5>
+                                <button type="button" class="btn btn-success mt-3"
+                                    data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Konfirmasi Logout -->
+                <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <a href="../logout.php" class="btn btn-danger">Ya</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
             <footer class="py-4 bg-light mt-auto">
                 <div class="container-fluid px-4">
@@ -243,9 +273,9 @@ if ($koneksi->connect_error) {
         <script src="js/jquery.min.js"></script>
         <script src="js/dataTables.min.js"></script>
         <script src="js/dataTables.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-        <script src="tanggapan-offline.js"></script>
+        <script src="js/jspdf.umd.min.js"></script>
+        <script src="../js/html2pdf.bundle.min.js"></script>
+        <script src="js/tanggapan-offline.js"></script>
 
 
         <!-- Pastikan jQuery dan DataTables JS sudah diload di atas -->
@@ -292,6 +322,10 @@ if ($koneksi->connect_error) {
 
 
         <script>
+        window.alert = function(msg) {
+            console.trace("🚨 alert() dipanggil dengan:", msg);
+        };
+
         $(document).ready(function() {
             let clickedButton = '';
 
@@ -346,11 +380,16 @@ if ($koneksi->connect_error) {
                     });
 
                     await db.put("tanggapan", dataObj);
-                    alert("📦 Offline: tanggapan disimpan dan akan dikirim otomatis saat online.");
+                    showTanggapanSuccessModal("offline",
+                        "📦 Tanggapan disimpan sementara di Local DB (Offline).");
                     $('#detailModal').modal('hide');
+                    // Bersihkan backdrop jika tertinggal
+                    document.body.classList.remove('modal-open');
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
                     return;
                 }
 
+                // Kirim langsung ke server
                 // Kirim langsung ke server
                 $.ajax({
                     url: 'proses_laporan.php',
@@ -359,25 +398,68 @@ if ($koneksi->connect_error) {
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
-                            if (clickedButton === 'terima') {
-                                window.location.href = 'daftar_laporan.php';
-                            } else {
-                                $.get('detail.php', {
-                                    id: laporanId
-                                }, function(data) {
-                                    $('#modalContent').html(data);
 
-                                    if ($('#qrcode').length) {
-                                        new QRCode(document.getElementById(
-                                            "qrcode"), {
-                                            text: "http://localhost/sekdes/admin/verifikasi.php?id=" +
-                                                laporanId,
-                                            width: 128,
-                                            height: 128
-                                        });
-                                    }
-                                });
+                            // Siapkan aksi setelah modal sukses tampil
+                            let afterModalShown = () => {};
+
+                            if (clickedButton === 'terima') {
+                                afterModalShown = () => {
+                                    window.location.href = 'daftar_laporan.php';
+                                };
+                            } else {
+                                afterModalShown = () => {
+                                    $.get('detail.php', {
+                                        id: laporanId
+                                    }, function(data) {
+                                        $('#modalContent').html(data);
+
+                                        if ($('#qrcode').length) {
+                                            new QRCode(document
+                                                .getElementById(
+                                                    "qrcode"), {
+                                                    text: "http://localhost/sekdes/admin/verifikasi.php?id=" +
+                                                        laporanId,
+                                                    width: 128,
+                                                    height: 128
+                                                });
+                                        }
+                                    });
+                                };
                             }
+
+                            // Modal sukses: tunggu sampai tampil, lalu jalankan aksi
+                            const successModalEl = document.getElementById(
+                                'editSuccessModal');
+                            const detailModalEl = document.getElementById(
+                                'detailModal');
+
+                            // Saat modal sukses ditampilkan
+                            const handleSuccessShown = () => {
+                                afterModalShown();
+                                successModalEl.removeEventListener('shown.bs.modal',
+                                    handleSuccessShown);
+                            };
+
+                            // Saat modal detail ditutup
+                            const handleDetailHidden = () => {
+                                showTanggapanSuccessModal("online",
+                                    "✅ Tanggapan berhasil dikirim ke server.");
+                                detailModalEl.removeEventListener('hidden.bs.modal',
+                                    handleDetailHidden);
+
+                                // Pasang event ketika modal sukses muncul
+                                successModalEl.addEventListener('shown.bs.modal',
+                                    handleSuccessShown);
+                            };
+
+                            detailModalEl.addEventListener('hidden.bs.modal',
+                                handleDetailHidden);
+
+                            // Beri delay kecil agar event listener sempat terpasang
+                            setTimeout(() => {
+                                $('#detailModal').modal('hide');
+                            }, 50);
+
                         } else {
                             alert('Gagal: ' + response.message);
                         }
@@ -389,6 +471,10 @@ if ($koneksi->connect_error) {
                         alert('Terjadi kesalahan saat memproses data.');
                     }
                 });
+
+
+
+
             });
 
             // Fungsi sync data saat online
@@ -416,10 +502,18 @@ if ($koneksi->connect_error) {
 
                         if (response.status === 'success') {
                             await db.delete("tanggapan", entry.id);
-                            console.log('✅ Tanggapan berhasil dikirim:', entry);
+                            showTanggapanSuccessModal("online",
+                                "✅ Tanggapan dari Local DB berhasil dikirim ke server.");
+
+                            // Tambahkan event listener untuk reload saat modal ditutup
+                            const successModalEl = document.getElementById('tanggapanSuccessModal');
+                            successModalEl.addEventListener('hidden.bs.modal', () => {
+                                location.reload();
+                            });
                         } else {
                             console.warn('❌ Gagal kirim:', response.message);
                         }
+
                     } catch (err) {
                         console.error("⚠️ Gagal sync:", err);
                     }
@@ -436,6 +530,25 @@ if ($koneksi->connect_error) {
                 console.log("🌐 Online kembali. Sinkronisasi...");
                 syncTanggapanData();
             });
+
+            function showTanggapanSuccessModal(jenis, message) {
+                const modalLabel = document.getElementById("editSuccessModalLabel");
+                modalLabel.textContent = message;
+
+                const icon = document.querySelector("#editSuccessModal .bi-check-circle-fill");
+                if (jenis === "offline") {
+                    icon.classList.remove("text-success");
+                    icon.classList.add("text-warning");
+                } else {
+                    icon.classList.remove("text-warning");
+                    icon.classList.add("text-success");
+                }
+
+                const successModalEl = document.getElementById('editSuccessModal');
+                const successModal = new bootstrap.Modal(successModalEl);
+                successModal.show();
+            }
+
         });
         </script>
 

@@ -34,12 +34,13 @@
                 <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="../profil.php"><i class="bi bi-person me-1"></i>Profil</a>
-                    </li>
+
+                    <!-- Tombol Logout -->
                     <li>
-                        <hr class="dropdown-divider" />
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
                     </li>
-                    <li><a class="dropdown-item" href="../index.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -52,8 +53,8 @@
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading">Menu</div>
                         <a class="nav-link" href="index.html">
-                            <div class="sb-nav-link-icon"><i class="bi-columns-gap"></i></div>
-                            Manajeman Akun
+                            <div class="sb-nav-link-icon"><i class="bi bi-people"></i></div>
+                            Daftar Akun
                         </a>
                     </div>
                 </div>
@@ -65,7 +66,7 @@
                     <div class="card-body">
                         <h2 class="mt-4">Manajeman Akun</h2>
                         <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active"><i class="bi bi-people"></i>Data Users</li>
+                            <li class="breadcrumb-item active"><i class="bi bi-people"></i>Daftar Akun</li>
                         </ol>
                         <button id="tambahBtn" class="btn btn-primary mb-3" data-bs-toggle="modal"
                             data-bs-target="#formModal">
@@ -86,22 +87,18 @@
                                 </thead>
                                 <tbody>
                                     <?php
-       $host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+        $host = "localhost";
+        $user = "root";
+        $pass = "";
+        $db   = "pengaduan";
+        $conn = new mysqli($host, $user, $pass, $db);
 
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
-
-// Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
-
+        if ($conn->connect_error) {
+            die("Koneksi gagal: " . $conn->connect_error);
+        }
 
         $no = 1;
-        $query = mysqli_query($koneksi, "SELECT * FROM users");
+        $query = mysqli_query($conn, "SELECT * FROM users");
         while ($data = mysqli_fetch_assoc($query)) {
         ?>
                                     <tr>
@@ -319,7 +316,25 @@ if ($koneksi->connect_error) {
                         </div>
                     </div>
                 </div>
-
+                <!-- Modal Konfirmasi Logout -->
+                <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <a href="../logout.php" class="btn btn-danger">Ya</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </main>
 

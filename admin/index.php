@@ -1,18 +1,17 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "pengaduan";
 
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
+// Membuat koneksi
+$conn = new mysqli($servername, $username, $password, $database);
 
 // Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
-
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['user_id'])) {
@@ -52,6 +51,21 @@ while ($row = $result->fetch_assoc()) {
     $labels[] = $row['kategori'];
     $data[] = $row['total'];
 }
+$tahunQuery = "SELECT DISTINCT tahun_anggaran FROM apbd_desa ORDER BY tahun_anggaran DESC";
+$tahunResult = $conn->query($tahunQuery);
+
+$tahunOptions = "";
+$currentYear = null;
+
+while ($row = $tahunResult->fetch_assoc()) {
+    if ($currentYear === null) {
+        $currentYear = $row['tahun_anggaran']; // ambil tahun pertama
+    }
+
+    $selected = ($row['tahun_anggaran'] == $currentYear) ? "selected" : "";
+    $tahunOptions .= "<option value='{$row['tahun_anggaran']}' $selected>{$row['tahun_anggaran']}</option>";
+}
+
 ?>
 
 
@@ -71,6 +85,7 @@ while ($row = $result->fetch_assoc()) {
     <link rel="stylesheet" href="css/dataTables.css">
     <link rel="stylesheet" href="css/dataTables.min.css">
     <link href="../css/bootstrap-icons.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
     <style>
@@ -169,8 +184,13 @@ while ($row = $result->fetch_assoc()) {
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="../logout.php"><i class="bi bi-door-open me-1"></i>Logout</a>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
                     </li>
+
                 </ul>
             </li>
         </ul>
@@ -181,7 +201,7 @@ while ($row = $result->fetch_assoc()) {
                 <div class="sb-sidenav-menu">
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading">Menu</div>
-                        <a class="nav-link" href="index.html">
+                        <a class="nav-link" href="index.php">
                             <div class="sb-nav-link-icon"><i class="bi-columns-gap"></i></div>
                             Dashboard
                         </a>
@@ -280,12 +300,23 @@ while ($row = $result->fetch_assoc()) {
                         </div>
                         <div class="col-lg-6">
                             <div class="card mb-4">
+
                                 <div class="card-header">
                                     <i class="bi bi-bank me-1"></i>
                                     Data APBD
                                 </div>
-                                <div class="card-body"><canvas id="myPieChart" width="100%" height="50"></canvas>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="tahunSelect" class="form-label">Pilih Tahun:</label>
+                                        <select id="tahunSelect" class="form-select">
+                                            <?= $tahunOptions ?>
+                                        </select>
+                                    </div>
+                                    <canvas id="myPieChart" width="100%" height="50"></canvas>
                                 </div>
+
+
+
 
                             </div>
                         </div>
@@ -311,19 +342,8 @@ while ($row = $result->fetch_assoc()) {
 
                                     <tbody>
                                         <?php
-        $host = "mysql.railway.internal";
-$user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
-
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
-
-// Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
-
+        $koneksi = new mysqli("localhost", "root", "", "pengaduan");
+        $query = "SELECT * FROM laporan WHERE status = 'Diterima'";
 
         $result = $koneksi->query($query);
         $no = 1;
@@ -356,6 +376,26 @@ if ($koneksi->connect_error) {
                         </div>
                     </div>
                 </div>
+                <!-- Modal Konfirmasi Logout -->
+                <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <a href="../logout.php" class="btn btn-danger">Ya</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
             <footer class="py-4 bg-light mt-auto">
                 <div class="container-fluid px-4">
@@ -374,6 +414,8 @@ if ($koneksi->connect_error) {
 
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.bundle.min.js">
+
+
     </script>
     <!-- jQuery + DataTables -->
     <script src="js/jquery.min.js"></script>

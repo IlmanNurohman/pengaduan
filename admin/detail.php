@@ -120,7 +120,7 @@ if (!$data) {
         flex-wrap: wrap;
     }
 
-    .btn {
+    .btn_1 {
         padding: 10px 20px;
         font-size: 16px;
         margin: 5px;
@@ -129,12 +129,12 @@ if (!$data) {
         border-radius: 5px;
     }
 
-    .btn-success {
+    .btn-success_1 {
         background-color: #4CAF50;
         color: white;
     }
 
-    .btn-danger {
+    .btn-danger_1 {
         background-color: #f44336;
         color: white;
     }
@@ -182,7 +182,7 @@ if (!$data) {
             flex-direction: column;
         }
 
-        .btn {
+        .btn_1 {
             width: 100%;
             max-width: 300px;
         }
@@ -253,8 +253,8 @@ if (!$data) {
             <label for="tanggapan"><strong>Tanggapan</strong></label><br>
             <textarea name="tanggapan" id="tanggapan" required placeholder="Tulis tanggapan di sini..."></textarea>
             <div class="buttons">
-                <button type="submit" name="terima" class="btn btn-success">Terima</button>
-                <button type="submit" name="tolak" class="btn btn-danger">Tolak</button>
+                <button type="submit" name="terima" class="btn btn-success_1">Terima</button>
+                <button type="submit" name="tolak" class="btn btn-danger_1">Tolak</button>
             </div>
         </form>
         <?php endif; ?>

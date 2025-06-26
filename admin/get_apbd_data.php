@@ -28,6 +28,10 @@ while ($row = $result->fetch_assoc()) {
 
 echo json_encode([
     'labels' => $labels,
-    'data' => $data
+    'data' => $data,
+    'debug' => [
+        'tahun' => $tahun,
+        'jumlah_data' => count($data)
+    ]
 ]);
 ?>

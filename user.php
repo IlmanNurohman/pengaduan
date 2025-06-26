@@ -1,12 +1,11 @@
 <?php
 session_start(); // Tambahkan ini untuk mulai session
-$host = "mysql.railway.internal";
+$host = "localhost";
 $user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+$pass = "";
+$db   = "pengaduan";
 
-$conn = new mysqli($host, $user, $pass, $db, $port);
+$conn = new mysqli($host, $user, $pass, $db);
 
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
@@ -17,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
     die("Akses ditolak. Silakan login terlebih dahulu.");
 }
 $user_id = $_SESSION['user_id'];
-$query = mysqli_query($koneksi, "SELECT foto FROM users WHERE id = '$user_id'");
+$query = mysqli_query($conn, "SELECT foto FROM users WHERE id = '$user_id'");
 $data = mysqli_fetch_assoc($query);
 $foto = $data['foto'] ? $data['foto'] : 'default.png'; // fallback jika foto kosong
 
@@ -58,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 // Ambil data pengaduan user yang sedang login
 $sql = "SELECT * FROM laporan WHERE user_id = ?";
-$stmt = $koneksi->prepare($sql);
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -125,7 +124,13 @@ $conn->close();
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="logout.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
+                    </li>
+
                 </ul>
             </li>
         </ul>
@@ -137,7 +142,7 @@ $conn->close();
                 <div class="sb-sidenav-menu">
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading">Menu</div>
-                        <a class="nav-link" href="index.html">
+                        <a class="nav-link" href="user.php">
                             <div class="sb-nav-link-icon"><i class="bi-columns-gap"></i></div>
                             Pengaduan
                         </a>
@@ -466,6 +471,24 @@ $conn->close();
             </div>
         </div>
 
+        <!-- Modal Konfirmasi Logout -->
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center p-4">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+
+                        <div class="d-flex justify-content-center gap-3 mt-3">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <a href="logout.php" class="btn btn-danger">Ya</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
 
@@ -487,17 +510,25 @@ $conn->close();
     <script src="admin/js/datatables.min.js"></script>
     <script src="js/html2pdf.bundle.min.js"></script>
 
-
     <script>
-    // Tandai bahwa user login ulang
-    localStorage.setItem('loginBaru', 'true');
+    // Tandai status login awal
+    if (localStorage.getItem('loginBaru') === null) {
+        if (!navigator.onLine) {
+            // Login pertama OFFLINE
+            localStorage.setItem('loginBaru', 'false');
+        } else {
+            // Login pertama ONLINE
+            localStorage.setItem('loginBaru', 'true');
+        }
+    }
     sessionStorage.removeItem('baruKirimOffline');
     </script>
 
-
-
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
+        // Reset flag baruSimpanOffline agar modal tidak muncul terus menerus
+        sessionStorage.removeItem('baruSimpanOffline');
+
         if (!window.idb || !window.idb.openDB) {
             console.error("Library IDB gagal dimuat.");
             alert("Gagal memuat fitur offline.");
@@ -565,24 +596,21 @@ $conn->close();
             const obj = {};
             data.forEach((val, key) => obj[key] = val);
 
-
-
             if (!navigator.onLine) {
                 try {
                     const db = await openIndexedDB();
                     await db.add("pengaduan", obj);
                     console.log("📦 Data DISIMPAN ke IndexedDB karena OFFLINE:", obj);
+                    sessionStorage.setItem('baruSimpanOffline', '1');
 
                     prosesModal.hide();
                     const offlineModal = new bootstrap.Modal(document.getElementById(
                         'offlineModal'));
                     offlineModal.show();
                 } catch (err) {
-
                     alert("Gagal simpan offline: " + err.message);
                 }
             } else {
-                // Tampilkan modal proses
                 prosesModal.show();
                 try {
                     const response = await fetch("proses_pengaduan.php", {
@@ -600,6 +628,12 @@ $conn->close();
                             'notifikasiModal'));
                         notifikasiModal.show();
 
+
+                        // Setelah modal ditutup, reload otomatis
+                        document.getElementById('notifikasiModal').addEventListener(
+                            'hidden.bs.modal', () => {
+                                location.reload();
+                            });
                         form.reset();
                     } else {
                         console.error("❌ Gagal kirim saat online.");
@@ -611,7 +645,6 @@ $conn->close();
                 }
             }
         });
-
 
         // Jalankan sync jika online
         if (navigator.onLine) {
@@ -625,8 +658,11 @@ $conn->close();
             sessionStorage.removeItem("pengaduan_berhasil");
         }
 
-        // Cek apakah ada data tertunda saat offline
-        await checkPendingReports();
+        // ✅ Jalankan warning modal HANYA saat login ulang
+        if (localStorage.getItem('loginBaru') === 'true') {
+            await checkPendingReports();
+            localStorage.removeItem('loginBaru');
+        }
 
         // Saat kembali online, lakukan sinkronisasi
         window.addEventListener("online", () => {
@@ -641,8 +677,12 @@ $conn->close();
 
                 const sudahLogin = sessionStorage.getItem('pengaduanLoginAktif');
                 const baruKirim = sessionStorage.getItem('baruKirimOffline');
+                const baruSimpan = sessionStorage.getItem('baruSimpanOffline');
+                const loginBaru = localStorage.getItem('loginBaru'); // ambil info login awal
 
-                if (all.length > 0 && !sudahLogin && !baruKirim) {
+                // ⚠️ HANYA munculkan modal jika login awal ONLINE
+                if (all.length > 0 && !sudahLogin && !baruKirim && !baruSimpan && loginBaru ===
+                    'true') {
                     const offlineModal = new bootstrap.Modal(document.getElementById(
                         'offlineWarningModal'));
                     offlineModal.show();
@@ -653,6 +693,9 @@ $conn->close();
 
     });
     </script>
+
+
+
 
 
 

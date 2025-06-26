@@ -31,7 +31,7 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tambah Staf</title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet" />
     <link href="css/datatables.css" rel="stylesheet" />
     <link href="css/datatables.min.css" rel="stylesheet" />
@@ -69,7 +69,13 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="../index.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
+                    </li>
+
                 </ul>
             </li>
         </ul>
@@ -345,6 +351,25 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                         </div>
                     </div>
                 </div>
+                <!-- Modal Konfirmasi Logout -->
+                <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <a href="../logout.php" class="btn btn-danger">Ya</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </main>
 
@@ -472,27 +497,8 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
             });
         });
 
-        $('#formEditStaf').on('submit', function(e) {
-            e.preventDefault();
-            var formData = new FormData(this);
 
-            $.ajax({
-                url: 'proses_edit_staf.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    showNotifModal("Berhasil", "Data staf berhasil diperbarui.", true,
-                        function() {
-                            location.reload();
-                        });
-                },
-                error: function() {
-                    showNotifModal("Gagal", "Gagal memperbarui data staf.", false);
-                }
-            });
-        });
+
 
     });
     </script>
@@ -502,7 +508,7 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
         let db;
         const dbName = "StafDB";
 
-        const request = indexedDB.open(dbName);
+        const request = indexedDB.open(dbName, 2);
 
         request.onerror = function() {
             console.error("Gagal membuka IndexedDB");
@@ -510,8 +516,6 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
 
         request.onsuccess = function(event) {
             db = event.target.result;
-
-            // Sinkronisasi jika online
             if (navigator.onLine) {
                 syncOfflineData();
             }
@@ -525,13 +529,17 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                     autoIncrement: true
                 });
             }
+            if (!db.objectStoreNames.contains("editStaf")) {
+                db.createObjectStore("editStaf", {
+                    keyPath: "id"
+                });
+            }
         };
 
-        // Handle form submit
+        // Form Tambah Staf
         document.getElementById("formStaf").addEventListener("submit", function(e) {
             e.preventDefault();
             const form = e.target;
-
             const nama = form.nama.value;
             const email = form.email.value;
             const jabatan = form.jabatan.value;
@@ -545,72 +553,113 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                     email,
                     jabatan,
                     alamat,
+                    foto: reader.result, // Data URL disimpan langsung
+                    timestamp: Date.now()
+                };
+
+                if (navigator.onLine) {
+                    sendToServer(stafData, () => form.reset());
+                } else {
+                    saveToIndexedDB(stafData);
+                    showNotifModal("Offline",
+                        "Data tambah staf disimpan sementara. Akan dikirim saat online.", true,
+                        () => form.reset());
+                }
+            };
+
+            if (fotoFile) reader.readAsDataURL(fotoFile);
+            else reader.onload();
+        });
+
+        // Form Edit Staf
+        document.getElementById("formEditStaf").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const form = e.target;
+
+            const id = parseInt(form.elements["id"].value);
+            const nama = form.elements["nama"].value;
+            const email = form.elements["email"].value;
+            const jabatan = form.elements["jabatan"].value;
+            const alamat = form.elements["alamat"].value;
+            const fotoFile = form.elements["foto"].files[0];
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                const editData = {
+                    id,
+                    nama,
+                    email,
+                    jabatan,
+                    alamat,
                     foto: reader.result,
                     timestamp: Date.now()
                 };
 
                 if (navigator.onLine) {
-                    sendToServer(stafData);
+                    sendEditToServer(editData, () => $('#editModal').modal('hide'));
                 } else {
-                    saveToIndexedDB(stafData);
-                    showNotifModal("Offline", "Data disimpan sementara. Akan dikirim saat online.",
-                        true);
+                    saveEditToIndexedDB(editData);
+                    showNotifModal("Offline",
+                        "Perubahan edit staf disimpan sementara. Akan dikirim saat online.",
+                        true, () => $('#editModal').modal('hide'));
                 }
             };
 
-            if (fotoFile) {
-                reader.readAsDataURL(fotoFile);
-            } else {
-                reader.onload(); // langsung lanjut tanpa foto
-            }
+            if (fotoFile) reader.readAsDataURL(fotoFile);
+            else reader.onload();
         });
 
-        // Simpan ke IndexedDB
         function saveToIndexedDB(data) {
             const tx = db.transaction("staf", "readwrite");
-            const store = tx.objectStore("staf");
-            store.add(data);
+            tx.objectStore("staf").add(data);
         }
 
-        // Sinkronisasi data offline
+        function saveEditToIndexedDB(data) {
+            const tx = db.transaction("editStaf", "readwrite");
+            tx.objectStore("editStaf").put(data);
+        }
+
         function syncOfflineData() {
-            const tx = db.transaction("staf", "readonly");
-            const store = tx.objectStore("staf");
-            const getAll = store.getAll();
-
-            getAll.onsuccess = function() {
-                const allData = getAll.result;
-                if (!allData.length) return;
-
-                allData.forEach((data) => {
-                    sendToServer(data, () => {
+            const tx1 = db.transaction("staf", "readonly");
+            const store1 = tx1.objectStore("staf");
+            store1.getAll().onsuccess = function(event) {
+                const allData = event.target.result;
+                allData.forEach(data => {
+                    // Setiap data diproses unik lewat closure yang benar
+                    sendToServer(Object.assign({}, data), function() {
                         const delTx = db.transaction("staf", "readwrite");
-                        const delStore = delTx.objectStore("staf");
-                        delStore.delete(data.id);
+                        delTx.objectStore("staf").delete(data.id);
+                    });
+                });
+            };
+
+            const tx2 = db.transaction("editStaf", "readonly");
+            const store2 = tx2.objectStore("editStaf");
+            store2.getAll().onsuccess = function(event) {
+                const allEditData = event.target.result;
+                allEditData.forEach(data => {
+                    sendEditToServer(Object.assign({}, data), function() {
+                        const delTx = db.transaction("editStaf", "readwrite");
+                        delTx.objectStore("editStaf").delete(data.id);
                     });
                 });
             };
         }
 
-        // Kirim ke server
         function sendToServer(data, callback = () => {}) {
             const formData = new FormData();
             formData.append("nama", data.nama);
             formData.append("email", data.email);
             formData.append("jabatan", data.jabatan);
             formData.append("alamat", data.alamat);
-
-            if (data.foto) {
-                const blob = dataURLtoBlob(data.foto);
-                formData.append("foto", blob, "foto.png");
-            }
+            if (data.foto) formData.append("foto", dataURLtoBlob(data.foto), "foto_" + data.timestamp + ".png");
 
             fetch("proses_tambah_staf.php", {
                     method: "POST",
-                    body: formData,
+                    body: formData
                 })
-                .then((res) => res.json())
-                .then((response) => {
+                .then(res => res.json())
+                .then(response => {
                     if (response.status === "success") {
                         showNotifModal("Berhasil", response.message, true, () => location.reload());
                     } else {
@@ -618,18 +667,40 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                     }
                     callback();
                 })
-                .catch((err) => {
-                    console.error("Gagal kirim ke server:", err);
-                });
+                .catch(err => console.error("Gagal kirim tambah ke server:", err));
         }
 
-        // Konversi base64 ke Blob
+        function sendEditToServer(data, callback = () => {}) {
+            const formData = new FormData();
+            formData.append("id", data.id);
+            formData.append("nama", data.nama);
+            formData.append("email", data.email);
+            formData.append("jabatan", data.jabatan);
+            formData.append("alamat", data.alamat);
+            if (data.foto) formData.append("foto", dataURLtoBlob(data.foto), "edit_" + data.id + ".png");
+
+            fetch("proses_edit_staf.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === "success") {
+                        showNotifModal("Berhasil", response.message, true, () => location.reload());
+                    } else {
+                        showNotifModal("Gagal", response.message, false);
+                    }
+                    callback();
+                })
+                .catch(err => console.error("Gagal kirim edit ke server:", err));
+        }
+
         function dataURLtoBlob(dataURL) {
-            const arr = dataURL.split(","),
-                mime = arr[0].match(/:(.*?);/)[1],
-                bstr = atob(arr[1]);
-            let n = bstr.length, // ⬅️ Ubah const jadi let
-                u8arr = new Uint8Array(n);
+            const arr = dataURL.split(",");
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
             while (n--) {
                 u8arr[n] = bstr.charCodeAt(n);
             }
@@ -638,11 +709,11 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
             });
         }
 
-
-        // Auto sync ketika online
         window.addEventListener("online", syncOfflineData);
     });
     </script>
+
+
 
 
 

@@ -1,34 +1,45 @@
 <?php
-$host = "mysql.railway.internal";
+$host = "localhost";
 $user = "root";
-$pass = "krhPptvTXVDpAZSpWmeEHfwpAISYMxmi";
-$db   = "railway";
-$port = "3306";
+$pass = "";
+$db   = "pengaduan";
+$conn = new mysqli($host, $user, $pass, $db);
 
-$koneksi = new mysqli($host, $user, $pass, $db, $port);
+// Pastikan metode POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_POST['id'] ?? null;
+    $nama = $_POST['nama_kegiatan'] ?? '';
+    $tanggal = $_POST['tanggal_kegiatan'] ?? '';
 
-// Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
+    if (!$id) {
+        echo "ID tidak ditemukan";
+        exit;
+    }
 
-
-if (isset($_POST['update'])) {
-    $id = $_POST['id'];
-    $nama = $_POST['nama_kegiatan'];
-    $tanggal = $_POST['tanggal_kegiatan'];
-
+    // Jika foto ada
     if (!empty($_FILES['foto']['name'])) {
         $foto = 'uploads/' . basename($_FILES['foto']['name']);
         move_uploaded_file($_FILES['foto']['tmp_name'], '../' . $foto);
-        $query = "UPDATE kegiatan SET nama_kegiatan='$nama', tanggal_kegiatan='$tanggal', foto='$foto' WHERE id=$id";
+
+        $query = "UPDATE kegiatan SET nama_kegiatan=?, tanggal_kegiatan=?, foto=? WHERE id=?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("sssi", $nama, $tanggal, $foto, $id);
     } else {
-        $query = "UPDATE kegiatan SET nama_kegiatan='$nama', tanggal_kegiatan='$tanggal' WHERE id=$id";
+        // Jika foto tidak dikirim
+        $query = "UPDATE kegiatan SET nama_kegiatan=?, tanggal_kegiatan=? WHERE id=?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ssi", $nama, $tanggal, $id);
     }
 
-    if ($conn->query($query)) {
-         header("Location: tambah_kegiatan.php?status=tambah_sukses");
+    if ($stmt->execute()) {
+        echo "success";
     } else {
-        echo "<script>alert('Gagal memperbarui data'); window.history.back();</script>";
+        echo "error: " . $stmt->error;
     }
+
+    $stmt->close();
+    $conn->close();
+} else {
+    echo "Metode tidak diizinkan";
 }
+?>

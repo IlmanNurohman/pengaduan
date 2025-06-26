@@ -69,7 +69,13 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="../index.php"><i class="bi bi-door-open me-1"></i>Logout</a></li>
+                    <!-- Tombol Logout -->
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-door-open me-1"></i>Logout
+                        </a>
+                    </li>
+
                 </ul>
             </li>
         </ul>
@@ -138,25 +144,16 @@ $user_id = $_SESSION['user_id']; // Ambil user_id dari session
                                 </thead>
                                 <tbody>
                                     <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "pengaduan";
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
 
 $no = 1;
 $query = mysqli_query($conn, "SELECT * FROM kegiatan ORDER BY id DESC");
 while ($data = mysqli_fetch_assoc($query)) {
 ?>
                                     <tr>
-                                        <td><?= $no++ ?></td>
-                                        <td><?= htmlspecialchars($data['nama_kegiatan']) ?></td>
-                                        <td><?= htmlspecialchars($data['tanggal_kegiatan']) ?></td>
-                                        <td>
+                                        <td class="text-center"><?= $no++ ?></td>
+                                        <td class="text-center"><?= htmlspecialchars($data['nama_kegiatan']) ?></td>
+                                        <td class="text-center"><?= htmlspecialchars($data['tanggal_kegiatan']) ?></td>
+                                        <td class="text-center">
                                             <?php if (!empty($data['foto'])): ?>
                                             <img src="../<?= htmlspecialchars($data['foto']) ?>" alt="Foto" width="100"
                                                 class="img-fluid" />
@@ -187,8 +184,10 @@ while ($data = mysqli_fetch_assoc($query)) {
                                         aria-labelledby="editModalLabel<?= $data['id'] ?>" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
-                                                <form method="POST" action="edit_kegiatan.php"
-                                                    enctype="multipart/form-data">
+                                                <!-- Tambahkan class agar mudah dipanggil -->
+                                                <form class="edit-kegiatan-form" method="POST"
+                                                    action="edit_kegiatan.php" enctype="multipart/form-data">
+
                                                     <div class="modal-header bg-warning">
                                                         <h5 class="modal-title" id="editModalLabel<?= $data['id'] ?>">
                                                             Edit Kegiatan
@@ -296,6 +295,7 @@ while ($data = mysqli_fetch_assoc($query)) {
                         </div>
                     </div>
                 </div>
+
                 <div class="modal fade" id="editSuccessModal" tabindex="-1" aria-labelledby="editSuccessModalLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -345,6 +345,38 @@ while ($data = mysqli_fetch_assoc($query)) {
                         </div>
                     </div>
                 </div>
+                <!-- Tempelkan di bawah body atau di akhir kontainer -->
+                <!-- Spinner full-screen overlay -->
+                <div id="syncSpinner"
+                    class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75 d-none"
+                    style="z-index: 1055;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 fw-semibold text-dark">Menyinkronkan data ke server...</p>
+                    </div>
+                </div>
+
+                <!-- Modal Konfirmasi Logout -->
+                <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-center p-4">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="modal-title mb-2" id="logoutModalLabel">Yakin ingin logout?</h5>
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <a href="../logout.php" class="btn btn-danger">Ya</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </main>
 
@@ -371,7 +403,7 @@ while ($data = mysqli_fetch_assoc($query)) {
     <script src="js/scripts.js"></script>
     <!-- jQuery + DataTables -->
     <script src="js/jquery.min.js"></script>
-    <script src="/js/dataTables.min.js"></script>
+    <script src="js/dataTables.min.js"></script>
     <script src="js/dataTables.min.js"></script>
     <?php
     $status = $_GET['status'] ?? '';
@@ -423,18 +455,26 @@ while ($data = mysqli_fetch_assoc($query)) {
     </script>
     <script>
     document.addEventListener("DOMContentLoaded", function() {
+
+        // Cegah modal muncul kembali setelah reload
+        if (sessionStorage.getItem("modalSuccessShown")) {
+            const successModalEl = document.getElementById('tambahSuccessModal');
+            if (successModalEl) {
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(successModalEl);
+                modalInstance.hide();
+            }
+            sessionStorage.removeItem("modalSuccessShown");
+        }
+        // IndexedDB Setup
         let dbKegiatan;
         const dbNameKegiatan = "KegiatanDB";
-
         const request = indexedDB.open(dbNameKegiatan);
-
         request.onerror = function() {
             console.error("Gagal membuka IndexedDB untuk kegiatan");
         };
 
         request.onsuccess = function(event) {
             dbKegiatan = event.target.result;
-
             if (navigator.onLine) {
                 syncOfflineKegiatan();
             }
@@ -442,110 +482,257 @@ while ($data = mysqli_fetch_assoc($query)) {
 
         request.onupgradeneeded = function(event) {
             dbKegiatan = event.target.result;
+
             if (!dbKegiatan.objectStoreNames.contains("kegiatan")) {
                 dbKegiatan.createObjectStore("kegiatan", {
                     keyPath: "id",
                     autoIncrement: true
                 });
             }
+            // Tambahkan store untuk edit kegiatan
+            if (!dbKegiatan.objectStoreNames.contains("editKegiatan")) {
+                dbKegiatan.createObjectStore("editKegiatan", {
+                    keyPath: "id",
+                    autoIncrement: true
+                });
+            }
         };
-
-        document.getElementById("formKegiatan").addEventListener("submit", function(e) {
+        // Handle Tambah Kegiatan
+        const tambahForm = document.getElementById("formKegiatan");
+        tambahForm.addEventListener("submit", function(e) {
             e.preventDefault();
             const form = e.target;
-
             const nama_kegiatan = form.nama_kegiatan.value;
             const tanggal_kegiatan = form.tanggal_kegiatan.value;
             const fotoFile = form.foto.files[0];
 
-            const reader = new FileReader();
-            reader.onload = function() {
+            if (fotoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fotoBase64 = e.target.result;
+                    const kegiatanData = {
+                        nama_kegiatan,
+                        tanggal_kegiatan,
+                        foto: fotoBase64,
+                        timestamp: Date.now()
+                    };
+
+                    if (navigator.onLine) {
+                        sendKegiatanToServerAsync(kegiatanData).then(() => {
+                            form.reset();
+                            showSuccessModal("Kegiatan Berhasil Ditambahkan ke Server",
+                                () => {
+                                    location.reload();
+                                });
+                        });
+
+                    } else {
+                        saveKegiatanToIndexedDB(kegiatanData);
+                        form.reset();
+                        showSuccessModal("Data berhasil disimpan ke Local DB (Offline)", null,
+                            'formModal');
+                    }
+                };
+                reader.readAsDataURL(fotoFile);
+            } else {
                 const kegiatanData = {
                     nama_kegiatan,
                     tanggal_kegiatan,
-                    foto: reader.result,
+                    foto: "",
                     timestamp: Date.now()
                 };
 
                 if (navigator.onLine) {
-                    sendKegiatanToServer(kegiatanData, () => {
-                        form.reset(); // Reset form setelah sukses
-                        const successModal = new bootstrap.Modal(document.getElementById(
-                            'tambahSuccessModal'));
-                        successModal.show();
-
-                        // OPTIONAL REDIRECT:
-                        window.location.href = "tambah_kegiatan.php?status=tambah_sukses";
+                    sendKegiatanToServerAsync(kegiatanData).then(() => {
+                        form.reset();
+                        showSuccessModal("Kegiatan Berhasil Ditambahkan ke Server", () => {
+                            location.reload();
+                        });
                     });
                 } else {
                     saveKegiatanToIndexedDB(kegiatanData);
-                    alert("Offline: Data kegiatan disimpan sementara. Akan dikirim saat online.");
-                    form.reset(); // Reset meski offline
+                    form.reset();
+                    showSuccessModal("Data berhasil disimpan ke Local DB (Offline)", null, 'formModal');
                 }
-            };
-
-            if (fotoFile) {
-                reader.readAsDataURL(fotoFile);
-            } else {
-                reader.onload(); // Handle kasus tanpa foto
             }
         });
 
+
+
+
+        // Handle Edit Kegiatan
+        document.body.addEventListener("submit", function(e) {
+            const form = e.target;
+            if (!form.classList.contains("edit-kegiatan-form")) return;
+
+            e.preventDefault();
+
+            const idInput = form.elements["id"];
+            const namaInput = form.elements["nama_kegiatan"];
+            const tanggalInput = form.elements["tanggal_kegiatan"];
+            const fotoInput = form.elements["foto"];
+
+            if (!idInput || !namaInput || !tanggalInput || !fotoInput) {
+                console.error("Salah satu input form edit tidak ditemukan.", {
+                    idInput,
+                    namaInput,
+                    tanggalInput,
+                    fotoInput
+                });
+                return;
+            }
+
+            const id = idInput.value;
+            const nama_kegiatan = namaInput.value;
+            const tanggal_kegiatan = tanggalInput.value;
+            const fotoFile = fotoInput.files[0];
+
+            const editData = {
+                id: Number(id),
+                nama_kegiatan,
+                tanggal_kegiatan,
+                foto: "",
+                timestamp: Date.now()
+            };
+
+            if (fotoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editData.foto = e.target.result;
+
+                    handleEditKegiatan(editData);
+                };
+                reader.readAsDataURL(fotoFile);
+            } else {
+                handleEditKegiatan(editData);
+            }
+
+            function handleEditKegiatan(data) {
+                if (navigator.onLine) {
+                    sendEditKegiatanToServerAsync(data).then(() => {
+                        showSuccessModal("Edit berhasil dikirim ke server", () => {
+                            location.reload();
+                        });
+                    });
+
+                } else {
+                    saveEditKegiatanToIndexedDB(data);
+                    showSuccessModal("Perubahan disimpan di Local DB (Offline)", null, 'editModal');
+
+                }
+            }
+        });
+
+        // IndexedDB Save Functions
         function saveKegiatanToIndexedDB(data) {
             const tx = dbKegiatan.transaction("kegiatan", "readwrite");
             const store = tx.objectStore("kegiatan");
             store.add(data);
         }
 
-        function syncOfflineKegiatan() {
+        function saveEditKegiatanToIndexedDB(data) {
+            const tx = dbKegiatan.transaction("editKegiatan", "readwrite");
+            const store = tx.objectStore("editKegiatan");
+            store.put(data);
+        }
+
+        async function syncOfflineKegiatan() {
+            // Sinkronisasi Tambah Kegiatan
             const tx = dbKegiatan.transaction("kegiatan", "readonly");
             const store = tx.objectStore("kegiatan");
             const getAll = store.getAll();
 
-            getAll.onsuccess = function() {
+            getAll.onsuccess = async function() {
                 const allData = getAll.result;
-                if (!allData.length) return;
-
-                allData.forEach((data) => {
-                    sendKegiatanToServer(data, () => {
+                for (const data of allData) {
+                    try {
+                        await sendKegiatanToServerAsync(data);
                         const delTx = dbKegiatan.transaction("kegiatan", "readwrite");
                         const delStore = delTx.objectStore("kegiatan");
                         delStore.delete(data.id);
-                    });
-                });
+
+                        // Tampilkan modal sukses setelah pengiriman per item
+                        showSuccessModal("Data kegiatan offline berhasil dikirim ke server");
+                        location.reload();
+
+                    } catch (err) {
+                        console.error("Gagal sinkron tambah:", err);
+                    }
+                }
+            };
+
+            // Sinkronisasi Edit Kegiatan
+            const txEdit = dbKegiatan.transaction("editKegiatan", "readonly");
+            const storeEdit = txEdit.objectStore("editKegiatan");
+            const getAllEdit = storeEdit.getAll();
+
+            getAllEdit.onsuccess = async function() {
+                const allEditData = getAllEdit.result;
+                for (const data of allEditData) {
+                    try {
+                        await sendEditKegiatanToServerAsync(data);
+                        const delTx = dbKegiatan.transaction("editKegiatan", "readwrite");
+                        const delStore = delTx.objectStore("editKegiatan");
+                        delStore.delete(data.id);
+
+                        // Tampilkan modal sukses setelah pengiriman per item
+                        showSuccessModal("Edit kegiatan offline berhasil dikirim ke server", null,
+                            'editModal');
+                        location.reload();
+
+                    } catch (err) {
+                        console.error("Gagal sinkron edit:", err);
+                    }
+                }
             };
         }
 
-        function sendKegiatanToServer(data, callback = () => {}) {
-            const formData = new FormData();
-            formData.append("nama_kegiatan", data.nama_kegiatan);
-            formData.append("tanggal_kegiatan", data.tanggal_kegiatan);
+        // Server Request Functions
+        function sendKegiatanToServerAsync(data) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append("nama_kegiatan", data.nama_kegiatan);
+                formData.append("tanggal_kegiatan", data.tanggal_kegiatan);
+                if (data.foto) {
+                    const blob = dataURLtoBlob(data.foto);
+                    const fileName = `foto_kegiatan_${data.timestamp}.png`;
+                    formData.append("foto", blob, fileName);
+                }
 
-            if (data.foto) {
-                const blob = dataURLtoBlob(data.foto);
-                formData.append("foto", blob, "foto_kegiatan.png");
-            }
+                fetch("simpan_kegiatan.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(res => res.text()).then(resolve).catch(reject);
+            });
+        }
 
-            fetch("simpan_kegiatan.php", {
-                    method: "POST",
-                    body: formData,
-                })
-                .then(res => res.text())
-                .then(response => {
-                    console.log("Response dari server:", response);
-                    callback(); // panggil callback sukses
-                })
-                .catch(err => {
-                    console.error("Gagal kirim ke server:", err);
-                });
+        function sendEditKegiatanToServerAsync(data) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append("id", data.id);
+                formData.append("nama_kegiatan", data.nama_kegiatan);
+                formData.append("tanggal_kegiatan", data.tanggal_kegiatan);
+                if (data.foto) {
+                    const blob = dataURLtoBlob(data.foto);
+                    const fileName = `edit_foto_kegiatan_${data.timestamp}.png`;
+                    formData.append("foto", blob, fileName);
+                }
+
+                fetch("edit_kegiatan.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(res => res.text()).then(resolve).catch(reject);
+            });
         }
 
         function dataURLtoBlob(dataURL) {
             const arr = dataURL.split(","),
                 mime = arr[0].match(/:(.*?);/)[1],
                 bstr = atob(arr[1]);
-            let n = bstr.length,
-                u8arr = new Uint8Array(n);
+            let n = bstr.length; // Perbaikan disini!
+            const u8arr = new Uint8Array(n);
             while (n--) {
                 u8arr[n] = bstr.charCodeAt(n);
             }
@@ -554,11 +741,37 @@ while ($data = mysqli_fetch_assoc($query)) {
             });
         }
 
+        function showSuccessModal(message, callback = null, closeModalId = null) {
+            const modalLabel = document.getElementById("tambahSuccessModalLabel");
+            modalLabel.textContent = message;
+
+            const successModalEl = document.getElementById('tambahSuccessModal');
+            const successModal = new bootstrap.Modal(successModalEl);
+            successModal.show();
+
+            // Tandai bahwa modal telah ditampilkan
+            sessionStorage.setItem("modalSuccessShown", "true");
+
+            successModalEl.addEventListener('hidden.bs.modal', function() {
+                if (closeModalId) {
+                    const modalToCloseEl = document.getElementById(closeModalId);
+                    if (modalToCloseEl && modalToCloseEl.classList.contains("show")) {
+                        const modalToClose = bootstrap.Modal.getOrCreateInstance(modalToCloseEl);
+                        modalToClose.hide();
+                    }
+                }
+
+                // Jalankan callback jika ada
+                if (callback) callback();
+            }, {
+                once: true
+            });
+        }
+
+
         window.addEventListener("online", syncOfflineKegiatan);
     });
     </script>
-
-
 
 </body>
 

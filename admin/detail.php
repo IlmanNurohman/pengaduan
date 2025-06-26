@@ -277,7 +277,7 @@ if (!$data) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
     new QRCode(document.getElementById("qrcode"), {
-        text: "http://localhost/sekdes/admin/verifikasi.php?id=<?= $data['id'] ?>",
+        text: "https://lapordesa.site/sekdes/admin/verifikasi.php?id=<?= $data['id'] ?>",
         width: 128,
         height: 128
     });

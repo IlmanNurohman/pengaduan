@@ -320,7 +320,7 @@ $conn->close();
 
             if (strtolower($row['status']) === 'diterima') {
                 $qrScripts .= "new QRCode(document.getElementById('qrcode-{$id}'), {
-                    text: 'http://localhost/admin/verifikasi.php?id={$id}',
+                    text: 'https://lapordesa.site/admin/verifikasi.php?id={$id}',
                     width: 128,
                     height: 128
                 });\n";

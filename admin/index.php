@@ -412,19 +412,22 @@ while ($row = $tahunResult->fetch_assoc()) {
         </div>
     </div>
 
+    <!-- jQuery (load sekali saja) -->
     <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.bundle.min.js">
 
+    <!-- Bootstrap -->
+    <script src="js/bootstrap.bundle.min.js"></script>
 
-    </script>
-    <!-- jQuery + DataTables -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/dataTables.js"></script>
-    <script src="js/dataTables.min.js"></script>
+    <!-- DataTables (gunakan yang sesuai versi resmi) -->
+    <script src="js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="css/jquery.dataTables.min.css">
+
+    <!-- Script tambahan -->
     <script src="js/scripts.js"></script>
     <script src="js/Chart.min.js"></script>
     <script src="assets/demo/chart-bar-demo.js"></script>
     <script src="assets/demo/chart-pie-demo.js"></script>
+
 
 
     <script>

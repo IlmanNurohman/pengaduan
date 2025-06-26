@@ -1,9 +1,9 @@
 <?php
 // Koneksi langsung ke database
 $host = "localhost";     // Ganti jika berbeda
-$user = "root";          // Username MySQL
-$pass = "";              // Password MySQL
-$db   = "pengaduan"; // Ganti dengan nama database kamu
+$user = "u637089379_lapordesa";          // Username MySQL
+$pass = "Lapordesa123";              // Password MySQL
+$db   = "u637089379_lapordesa"; // Ganti dengan nama database kamu
 
 $conn = new mysqli($host, $user, $pass, $db);
 

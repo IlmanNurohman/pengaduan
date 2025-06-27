@@ -122,9 +122,9 @@ document.getElementById('loginForm').addEventListener('submit', function (e) {
 });
 
 function loginOffline(username, password) {
-    const hashedPasswordPromise = sha256(password);
+    sha256(password).then((hashed) => {
+        console.log('Hashed input password:', hashed);
 
-    hashedPasswordPromise.then(hashed => {
         const dbRequest = indexedDB.open('LoginDB', 1);
         dbRequest.onsuccess = function (event) {
             const db = event.target.result;
@@ -134,8 +134,11 @@ function loginOffline(username, password) {
 
             request.onsuccess = function () {
                 const user = request.result;
+                console.log('Data user dari IndexedDB:', user);
+
                 if (user && user.password === hashed) {
                     alert('Login offline berhasil!');
+                    // Simpan sesi jika perlu
 
                     // Redirect sesuai level
                     if (user.level === 'masyarakat') {
@@ -146,12 +149,16 @@ function loginOffline(username, password) {
                         alert('Level user tidak dikenali.');
                     }
                 } else {
-                    alert('Username atau password salah (offline).');
+                    alert('Username atau password salah (offline)');
+                    console.error('Perbandingan gagal:');
+                    console.log('Input hash:', hashed);
+                    console.log('Password tersimpan:', user?.password);
                 }
             };
         };
     });
 }
+
 
 // Fungsi hash SHA-256
 function sha256(text) {

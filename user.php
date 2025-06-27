@@ -599,17 +599,8 @@ $conn->close();
 
             if (berhasilSync) {
                 sessionStorage.setItem("pengaduan_berhasil", "1");
-
-                // ✅ Jangan reload, cukup munculkan notifikasi atau render ulang data
-                const notifikasiModal = new bootstrap.Modal(document.getElementById('notifikasiModal'));
-                notifikasiModal.show();
-
-                // ✅ Panggil fungsi untuk render ulang data di tabel
-                if (typeof renderOfflineReports === "function") {
-                    renderOfflineReports(); // tampilkan ulang data pengaduan
-                }
+                location.reload();
             }
-
         }
 
         const form = document.getElementById("pengaduanForm");
@@ -643,6 +634,11 @@ $conn->close();
                 } catch (err) {
                     alert("Gagal simpan offline: " + err.message);
                 }
+                offlineModal._element.addEventListener('hidden.bs.modal', () => {
+                    // Pastikan tidak reload
+                    console.log("✅ Modal ditutup, tetap di halaman cache.");
+                });
+
 
             } else {
                 // === ONLINE MODE ===

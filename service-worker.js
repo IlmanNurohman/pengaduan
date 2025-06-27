@@ -79,7 +79,25 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const requestURL = new URL(event.request.url);
 
-  // Lewati permintaan dari CDN pihak ketiga
+  // ✅ Tangani permintaan navigasi (misalnya user.php) agar tetap ambil cache saat offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match('/user.php'); // atau path spesifik sesuai
+        })
+    );
+    return; // ⬅️ INI PENTING: hentikan eksekusi lanjutan
+  }
+
+  // ✅ Lewati permintaan dari CDN
   if (
     requestURL.origin.includes("cdn.jsdelivr.net") ||
     requestURL.origin.includes("unpkg.com")
@@ -89,12 +107,11 @@ self.addEventListener("fetch", (event) => {
 
   const cleanPath = requestURL.pathname;
 
-  // Jika PHP atau login → Network First
+  // ✅ Untuk file PHP & login.html → Network First
   if (cleanPath.endsWith(".php") || cleanPath.endsWith("login.html")) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Simpan versi terbaru ke cache
           return caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, response.clone());
             return response;
@@ -113,7 +130,7 @@ self.addEventListener("fetch", (event) => {
         })
     );
   } else {
-    // Untuk file statis → Stale While Revalidate
+    // ✅ Untuk file statis → Stale While Revalidate
     event.respondWith(
       caches.match(event.request).then((cached) => {
         const fetchPromise = fetch(event.request)
@@ -127,7 +144,6 @@ self.addEventListener("fetch", (event) => {
             // Gagal fetch karena offline → abaikan
           });
 
-        // Kembalikan cache dulu, update diam-diam
         return cached || fetchPromise;
       })
     );

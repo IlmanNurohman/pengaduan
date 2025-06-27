@@ -91,16 +91,37 @@ $conn->close();
 </head>
 
 <body class="sb-nav-fixed">
+    <?php if (isset($_SESSION['user_id'])): ?>
+    <!-- Login ONLINE -->
+    <h1>Halo, <?php echo $_SESSION['nama']; ?></h1>
+    <p>Email: <?php echo $_SESSION['email']; ?></p>
+    <p>Level: <?php echo $_SESSION['level']; ?></p>
+    <a href="logout.php">Logout</a>
+
+    <?php else: ?>
+    <!-- Login OFFLINE, gunakan JavaScript -->
     <script>
-    const userData = localStorage.getItem('userData'); // 🔁 pakai localStorage sekarang
+    const userData = localStorage.getItem('userData');
     if (userData) {
         const user = JSON.parse(userData);
-        // tampilkan konten atau redirect seperti biasa
+        document.body.innerHTML = `
+        <h1>Halo, ${user.nama}</h1>
+        <p>Email: ${user.email}</p>
+        <p>Level: ${user.level}</p>
+        <a href="#" onclick="logoutOffline()">Logout</a>
+      `;
     } else {
         alert("Akses ditolak. Silakan login terlebih dahulu.");
         window.location.href = "login.html";
     }
+
+    function logoutOffline() {
+        localStorage.removeItem('userData');
+        localStorage.removeItem('user_id');
+        window.location.href = 'login.html';
+    }
     </script>
+    <?php endif; ?>
 
 
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">

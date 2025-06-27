@@ -90,29 +90,20 @@ self.addEventListener("fetch", (event) => {
   const cleanPath = requestURL.pathname;
 
   // Jika PHP atau login → Network First
-  if (cleanPath.endsWith(".php") || cleanPath.endsWith("login.html")) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Simpan versi terbaru ke cache
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, response.clone());
-            return response;
-          });
-        })
-        .catch(() => {
-          return caches.match(event.request).then((cachedResponse) => {
-            return (
-              cachedResponse ||
-              new Response("Offline dan belum tersedia cache.", {
-                status: 503,
-                headers: { "Content-Type": "text/plain" },
-              })
-            );
-          });
-        })
-    );
-  } else {
+  if (cleanPath.endsWith(".php")) {
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        const responseClone = response.clone(); // ✅ clone di sini
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseClone);
+        });
+        return response; // kembalikan yang asli
+      })
+      .catch(() => caches.match(cleanPath))
+  );
+}
+ else {
     // Untuk file statis → Stale While Revalidate
     event.respondWith(
       caches.match(event.request).then((cached) => {

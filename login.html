@@ -132,29 +132,30 @@ function loginOffline(username, password) {
             const store = tx.objectStore('users');
             const request = store.get(username);
 
-            request.onsuccess = function () {
-                const user = request.result;
-                console.log('Data user dari IndexedDB:', user);
+           request.onsuccess = function () {
+    const user = request.result;
+    console.log('Data user dari IndexedDB:', user);
 
-                if (user && user.password === hashed) {
-                    alert('Login offline berhasil!');
-                    // Simpan sesi jika perlu
+    if (user && user.password === hashed) {
+        console.log("Login offline berhasil");
+        // Redirect sesuai level
+        if (user.level === 'masyarakat') {
+            window.location.href = 'user.php';
+        } else if (user.level === 'sekdes' || user.level === 'kades') {
+            window.location.href = 'admin/index.php';
+        } else {
+            alert('Level user tidak dikenali.');
+        }
+    } else {
+        console.error("Login gagal (offline)");
+        console.log("Input username:", username);
+        console.log("Input password (hash):", hashed);
+        console.log("Stored username:", user?.username);
+        console.log("Stored password:", user?.password);
+        alert('Username atau password salah (offline)');
+    }
+};
 
-                    // Redirect sesuai level
-                    if (user.level === 'masyarakat') {
-                        window.location.href = 'user.php';
-                    } else if (user.level === 'sekdes' || user.level === 'kades') {
-                        window.location.href = 'admin/index.php';
-                    } else {
-                        alert('Level user tidak dikenali.');
-                    }
-                } else {
-                    alert('Username atau password salah (offline)');
-                    console.error('Perbandingan gagal:');
-                    console.log('Input hash:', hashed);
-                    console.log('Password tersimpan:', user?.password);
-                }
-            };
         };
     });
 }
@@ -175,11 +176,6 @@ console.log("Input password (hash):", hashedInputPassword);
 console.log("Stored username:", storedUser.username);
 console.log("Stored password:", storedUser.password);
 
-if (inputUsername === storedUser.username && hashedInputPassword === storedUser.password) {
-  console.log("Login Berhasil");
-} else {
-  console.log("Login Gagal");
-}
 
 </script>
 

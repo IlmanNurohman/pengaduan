@@ -1,64 +1,78 @@
 <?php
-// Aktifkan session
 session_start();
-
-// Koneksi ke database
-$host = "localhost";
-$user = "u637089379_lapordesa";
-$pass = "Lapordesa123";
-$db   = "u637089379_lapordesa";
-
-$conn = new mysqli($host, $user, $pass, $db);
-
-// Cek koneksi
-if ($conn->connect_error) {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Koneksi database gagal.'
-    ]);
-    exit;
+$koneksi = new mysqli("localhost", "u637089379_lapordesa", "Lapordesa123", "u637089379_lapordesa");
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
 }
 
-// Ambil data dari POST
-$username = $_POST['username'] ?? '';
-$password = $_POST['password'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-// Cek ke database
-$sql = "SELECT * FROM users WHERE username = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
+    // Cek admin langsung
+    if ($username === 'admin' && $password === 'admin123') {
+        $_SESSION['user_id'] = 0; // Bisa 0 atau nilai unik
+        $_SESSION['username'] = 'admin';
+        $_SESSION['level'] = 'admin';
+        $_SESSION['nama'] = 'Administrator';
+        $_SESSION['email'] = 'admin@example.com';
 
-// Jika user ditemukan
-if ($result->num_rows === 1) {
-    $user = $result->fetch_assoc();
-
-    // Cek password (disesuaikan jika pakai hash)
-   if ($user['password'] === hash('sha256', $password))
- {
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['level'] = $user['level'];
-         $_SESSION['user_id'] = $user['id'];
-
-        echo json_encode([
-            'status' => 'success',
-            'user' => [
-                'username' => $user['username'],
-                'level' => $user['level'],
-                'password' => $user['password'] // disimpan sementara untuk offline
-            ]
-        ]);
-    } else {
-        echo json_encode([
-            'status' => 'fail',
-            'message' => 'Password salah.'
-        ]);
+        header("Location: admin/admin.php");
+        exit;
     }
-} else {
-    echo json_encode([
-        'status' => 'fail',
-        'message' => 'User tidak ditemukan.'
-    ]);
+
+    // Cek ke database untuk user biasa
+    $query = $koneksi->prepare("SELECT id, username, password, level, nama, email FROM users WHERE username = ?");
+    $query->bind_param("s", $username);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        if (hash('sha256', $password) === $user['password']) {
+            // Set sesi
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['level'] = $user['level'];
+            $_SESSION['nama'] = $user['nama'];
+            $_SESSION['email'] = $user['email'];
+
+            if ($user['level'] === 'masyarakat') {
+                // Kirim data ke sessionStorage via JavaScript
+                echo "<script>
+                    const userData = {
+                        username: " . json_encode($user['username']) . ",
+                        password: " . json_encode($user['password']) . ",
+                        nama: " . json_encode($user['nama']) . ",
+                        email: " . json_encode($user['email']) . ",
+                        level: " . json_encode($user['level']) . "
+                    };
+                    sessionStorage.setItem('userData', JSON.stringify(userData));
+                    window.location.href = 'user.php';
+                </script>";
+                exit;
+            } else if ($user['level'] === 'sekdes' || $user['level'] === 'kades') {
+    echo "<script>
+        const userData = {
+            username: " . json_encode($user['username']) . ",
+            nama: " . json_encode($user['nama']) . ",
+            email: " . json_encode($user['email']) . ",
+            level: " . json_encode($user['level']) . "
+        };
+        sessionStorage.setItem('userData', JSON.stringify(userData));
+        window.location.href = 'admin/index.php';
+    </script>";
+    exit;
+}
+ else {
+                echo "Level user tidak dikenali.";
+            }
+        } else {
+            echo "<script>alert('Password salah!'); window.history.back();</script>";
+        }
+    } else {
+        echo "<script>alert('Username tidak ditemukan!'); window.history.back();</script>";
+    }
 }
 ?>

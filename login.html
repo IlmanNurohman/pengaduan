@@ -1,158 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login - SB Admin</title>
-  <link href="admin/css/styles.css" rel="stylesheet" />
-  <link rel="stylesheet" href="admin/assets/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/bootstrap-icons.css">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Login - SB Admin</title>
+    <link href="admin/css/styles.css" rel="stylesheet" />
+      <link rel="stylesheet" href="admin/assets/fontawesome/css/all.min.css">
+      <link rel="stylesheet" href="css/bootstrap.min.css">
+      <link rel="stylesheet" href="css/bootstrap-icons.css">
 </head>
+
 <body class="bg-primary">
-  <div id="layoutAuthentication">
-    <div id="layoutAuthentication_content">
-      <main>
-        <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-5">
-              <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header"><h3 class="text-center font-weight-light my-4">Login</h3></div>
-                <div class="card-body">
-                  <form id="loginForm">
-                    <div class="mb-3">
-                      <label for="inputUsername" class="form-label">Username</label>
-                      <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" class="form-control" id="inputUsername" name="username" required>
-                      </div>
-                    </div>
-                    <div class="mb-3">
-                      <label for="inputPassword" class="form-label">Password</label>
-                      <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" class="form-control" id="inputPassword" name="password" required>
-                      </div>
-                    </div>
-                    <div class="form-check mb-3">
-                      <input class="form-check-input" type="checkbox" id="rememberPassword">
-                      <label class="form-check-label" for="rememberPassword">Remember Password</label>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
-                      <a class="small" href="password.html">Lupa Password?</a>
-                      <button class="btn btn-primary" type="submit">Login</button>
-                    </div>
-                  </form>
-                </div>
-                <div class="card-footer text-center py-3">
-                  <div class="small"><a href="register.html">Belum Punya akun? Daftar Disini!</a></div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div id="layoutAuthentication">
+        <div id="layoutAuthentication_content">
+            <main>
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-5">
+                            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                <div class="card-header">
+                                    <h3 class="text-center font-weight-light my-4">Login</h3>
+                                </div>
+                                <div class="card-body">
+                                   <form action="proses_login.php" method="POST">
+    <div class="mb-3">
+        <label for="inputUsername" class="form-label">Username</label>
+        <div class="input-group">
+            <span class="input-group-text" id="username-addon"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" id="inputUsername" name="username" placeholder="Masukkan Username" aria-describedby="username-addon" required>
         </div>
-      </main>
     </div>
-  </div>
+    <div class="mb-3">
+        <label for="inputPassword" class="form-label">Password</label>
+        <div class="input-group">
+            <span class="input-group-text" id="password-addon"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="inputPassword" name="password" placeholder="Masukkan Password" aria-describedby="password-addon" required>
+        </div>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" id="inputRememberPassword" type="checkbox" value="" />
+        <label class="form-check-label" for="inputRememberPassword">Remember Password</label>
+    </div>
+    <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+        <a class="small" href="password.html">Lupa Password ?</a>
+        <button class="btn btn-primary" type="submit">Login</button>
+    </div>
+</form>
 
-  <script src="js/bootstrap.bundle.min.js"></script>
- <script>
-  // Simpan data ke IndexedDB jika login online berhasil
-  if (sessionStorage.getItem('userData')) {
-    const userData = JSON.parse(sessionStorage.getItem('userData'));
-    const dbRequest = indexedDB.open('LoginDB', 1);
+                                </div>
+                                <div class="card-footer text-center py-3">
+                                    <div class="small">
+                                        <a href="register.html">Belum Punya akun ? Daftar Disini!</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous">
+    </script>
+    <script>
+    // Cek jika login berhasil dan ada data user dari server
+    if (sessionStorage.getItem('userData')) {
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        const dbRequest = indexedDB.open('LoginDB', 1);
 
-    dbRequest.onupgradeneeded = function (event) {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('users')) {
-        db.createObjectStore('users', { keyPath: 'username' });
-      }
-    };
-
-    dbRequest.onsuccess = function (event) {
-      const db = event.target.result;
-      const tx = db.transaction('users', 'readwrite');
-      const store = tx.objectStore('users');
-      store.put(userData);
-
-      tx.oncomplete = function () {
-        console.log('User disimpan untuk offline login.');
-        sessionStorage.removeItem('userData');
-      };
-    };
-  }
-
-  // Tangani login form
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const username = document.getElementById('inputUsername').value;
-    const password = document.getElementById('inputPassword').value;
-
-    if (navigator.onLine) {
-      // Kirim ke server saat online
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      fetch('proses_login.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          // Simpan session untuk disimpan ke IndexedDB nanti
-          sessionStorage.setItem('userData', JSON.stringify(data.user));
-          alert("Login berhasil! Mengarahkan...");
-          if (data.user.level === 'admin') {
-            location.href = 'admin/index.php';
-          } else {
-            location.href = 'user.php';
-          }
-        } else {
-          alert('Login gagal: ' + data.message);
-        }
-      })
-      .catch(() => alert('Gagal menghubungi server.'));
-    } else {
-      // Offline: login via IndexedDB
-      const dbRequest = indexedDB.open('LoginDB', 1);
-
-      dbRequest.onsuccess = async function (event) {
-        const db = event.target.result;
-        const tx = db.transaction('users', 'readonly');
-        const store = tx.objectStore('users');
-        const getRequest = store.get(username);
-
-        getRequest.onsuccess = async function () {
-          const user = getRequest.result;
-          if (!user) return alert("User tidak ditemukan (offline)");
-
-          const inputHash = await sha256(password);
-          if (user.password === inputHash) {
-            alert('Login offline berhasil!');
-            if (user.level === 'admin') {
-              location.href = 'admin/index.php';
-            } else {
-              location.href = 'user.php';
+        dbRequest.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('users')) {
+                db.createObjectStore('users', { keyPath: 'username' });
             }
-          } else {
-            alert('Password salah (offline)');
-          }
         };
-      };
-    }
-  });
 
-  // Hash password dengan SHA-256
-  async function sha256(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
+        dbRequest.onsuccess = function (event) {
+            const db = event.target.result;
+            const tx = db.transaction('users', 'readwrite');
+            const store = tx.objectStore('users');
+
+            store.put({
+                username: userData.username,
+                password: userData.password, // hash password
+                nama: userData.nama,
+                level: userData.level,
+                email: userData.email
+            });
+
+            tx.oncomplete = function () {
+                console.log('User disimpan untuk offline login.');
+                sessionStorage.removeItem('userData'); // Bersihkan
+            };
+        };
+    }
 </script>
 
+    
 </body>
-</html>
+
+</html> 

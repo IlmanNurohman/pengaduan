@@ -662,7 +662,7 @@ $conn->close();
                         // Setelah modal ditutup, reload otomatis
                         document.getElementById('notifikasiModal').addEventListener(
                             'hidden.bs.modal', () => {
-                                location.reload();
+
                             });
                         form.reset();
                     } else {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "pengaduan-cache-v2";
+const CACHE_NAME = "pengaduan-cache-v3";
 
 const urlsToCache = [
   "index.php",
@@ -75,11 +75,11 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// FETCH HANDLER Diperbaiki
+// ✅ FETCH HANDLER: Stale-While-Revalidate untuk static files
 self.addEventListener("fetch", (event) => {
   const requestURL = new URL(event.request.url);
 
-  // Lewati permintaan CDN
+  // Lewati permintaan dari CDN pihak ketiga
   if (
     requestURL.origin.includes("cdn.jsdelivr.net") ||
     requestURL.origin.includes("unpkg.com")
@@ -87,47 +87,54 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Normalisasi path (abaikan query string untuk pencocokan cache)
-  let cleanPath = requestURL.pathname;
+  const cleanPath = requestURL.pathname;
 
-  // Jika PHP atau login.html → Network First
+  // Jika PHP atau login → Network First
   if (cleanPath.endsWith(".php") || cleanPath.endsWith("login.html")) {
     event.respondWith(
       fetch(event.request)
-        .then((response) => response)
+        .then((response) => {
+          // Simpan versi terbaru ke cache
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        })
         .catch(() => {
-          // fallback jika gagal fetch online (misal offline)
-          return caches.match(cleanPath).then((cachedResponse) => {
+          return caches.match(event.request).then((cachedResponse) => {
             return (
               cachedResponse ||
-              new Response(
-                "Anda sedang offline dan halaman belum tersedia di cache.",
-                { status: 503, headers: { "Content-Type": "text/plain" } }
-              )
+              new Response("Offline dan belum tersedia cache.", {
+                status: 503,
+                headers: { "Content-Type": "text/plain" },
+              })
             );
           });
         })
     );
   } else {
-    // Untuk file statis → Cache First
+    // Untuk file statis → Stale While Revalidate
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        return (
-          cached ||
-          fetch(event.request).catch(() => {
-            return new Response("Offline & file tidak ditemukan", {
-              status: 503,
-              headers: { "Content-Type": "text/plain" },
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, networkResponse.clone());
             });
+            return networkResponse;
           })
-        );
+          .catch(() => {
+            // Gagal fetch karena offline → abaikan
+          });
+
+        // Kembalikan cache dulu, update diam-diam
+        return cached || fetchPromise;
       })
     );
   }
 });
 
 self.addEventListener("message", (event) => {
-  console.log("[SW] Message received:", event.data);
   if (event.data && event.data.type === "MANUAL_NOTIFICATION") {
     const { title, body, icon } = event.data;
     self.registration.showNotification(title || "Notifikasi", {

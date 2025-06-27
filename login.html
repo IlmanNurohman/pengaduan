@@ -26,7 +26,7 @@
                                     <h3 class="text-center font-weight-light my-4">Login</h3>
                                 </div>
                                 <div class="card-body">
-                                   <form action="proses_login.php" method="POST">
+                                  <form id="loginForm">
     <div class="mb-3">
         <label for="inputUsername" class="form-label">Username</label>
         <div class="input-group">
@@ -42,7 +42,7 @@
         </div>
     </div>
     <div class="form-check mb-3">
-        <input class="form-check-input" id="inputRememberPassword" type="checkbox" value="" />
+        <input class="form-check-input" id="inputRememberPassword" type="checkbox" />
         <label class="form-check-label" for="inputRememberPassword">Remember Password</label>
     </div>
     <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
@@ -67,38 +67,104 @@
     <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous">
     </script>
     <script>
-    // Cek jika login berhasil dan ada data user dari server
-    if (sessionStorage.getItem('userData')) {
-        const userData = JSON.parse(sessionStorage.getItem('userData'));
-        const dbRequest = indexedDB.open('LoginDB', 1);
+// Jika sebelumnya login online, simpan data user ke IndexedDB
+if (sessionStorage.getItem('userData')) {
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    const dbRequest = indexedDB.open('LoginDB', 1);
 
-        dbRequest.onupgradeneeded = function (event) {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('users')) {
-                db.createObjectStore('users', { keyPath: 'username' });
-            }
+    dbRequest.onupgradeneeded = function (event) {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('users')) {
+            db.createObjectStore('users', { keyPath: 'username' });
+        }
+    };
+
+    dbRequest.onsuccess = function (event) {
+        const db = event.target.result;
+        const tx = db.transaction('users', 'readwrite');
+        const store = tx.objectStore('users');
+        store.put(userData);
+        tx.oncomplete = function () {
+            console.log('Data user disimpan ke IndexedDB untuk offline login.');
+            sessionStorage.removeItem('userData');
         };
+    };
+}
 
+// Tangani login online atau offline
+document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById('inputUsername').value;
+    const password = document.getElementById('inputPassword').value;
+
+    if (navigator.onLine) {
+        // Online: kirim ke proses_login.php
+        const form = e.target;
+        const formData = new FormData(form);
+
+        fetch('proses_login.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.text())
+        .then(html => {
+            document.write(html); // tampilkan hasil dari proses_login.php
+        })
+        .catch(err => {
+            alert('Terjadi kesalahan saat login online.');
+            console.error(err);
+        });
+    } else {
+        // Offline: cek dari IndexedDB
+        loginOffline(username, password);
+    }
+});
+
+function loginOffline(username, password) {
+    const hashedPasswordPromise = sha256(password);
+
+    hashedPasswordPromise.then(hashed => {
+        const dbRequest = indexedDB.open('LoginDB', 1);
         dbRequest.onsuccess = function (event) {
             const db = event.target.result;
-            const tx = db.transaction('users', 'readwrite');
+            const tx = db.transaction('users', 'readonly');
             const store = tx.objectStore('users');
+            const request = store.get(username);
 
-            store.put({
-                username: userData.username,
-                password: userData.password, // hash password
-                nama: userData.nama,
-                level: userData.level,
-                email: userData.email
-            });
+            request.onsuccess = function () {
+                const user = request.result;
+                if (user && user.password === hashed) {
+                    alert('Login offline berhasil!');
 
-            tx.oncomplete = function () {
-                console.log('User disimpan untuk offline login.');
-                sessionStorage.removeItem('userData'); // Bersihkan
+                    // Redirect sesuai level
+                    if (user.level === 'masyarakat') {
+                        window.location.href = 'user.php';
+                    } else if (user.level === 'sekdes' || user.level === 'kades') {
+                        window.location.href = 'admin/index.php';
+                    } else {
+                        alert('Level user tidak dikenali.');
+                    }
+                } else {
+                    alert('Username atau password salah (offline).');
+                }
             };
         };
-    }
+    });
+}
+
+// Fungsi hash SHA-256
+function sha256(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    return crypto.subtle.digest('SHA-256', data).then(buffer => {
+        return Array.from(new Uint8Array(buffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+    });
+}
 </script>
+
 
     
 </body>

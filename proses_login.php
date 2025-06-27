@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Kirim data ke sessionStorage via JavaScript
                 echo "<script>
                     const userData = {
+                      id: " . json_encode($user['id']) . ",
                         username: " . json_encode($user['username']) . ",
                         password: " . json_encode($user['password']) . ",
                         nama: " . json_encode($user['nama']) . ",
@@ -58,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else if ($user['level'] === 'sekdes' || $user['level'] === 'kades') {
     echo "<script>
         const userData = {
+          id: " . json_encode($user['id']) . ",
             username: " . json_encode($user['username']) . ",
             nama: " . json_encode($user['nama']) . ",
             email: " . json_encode($user['email']) . ",

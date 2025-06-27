@@ -142,6 +142,8 @@ function loginOffline(username, password) {
 
     if (user && user.password === hashed) {
         console.log("Login offline berhasil");
+         sessionStorage.setItem('userData', JSON.stringify(user));
+    sessionStorage.setItem('user_id', user.id);
         // Redirect sesuai level
         if (user.level === 'masyarakat') {
             window.location.href = 'user.php';

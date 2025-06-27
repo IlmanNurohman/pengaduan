@@ -9,5 +9,5 @@ session_destroy();
 localStorage.removeItem('userData');
 localStorage.removeItem('user_id');
 // Arahkan ke login.html (bukan index.php agar konsisten dengan offline login)
-window.location.href = 'login.html';
+window.location.href = 'index.php';
 </script>

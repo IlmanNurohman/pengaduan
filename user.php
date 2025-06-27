@@ -11,10 +11,7 @@ if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Cek apakah user sudah login
-if (!isset($_SESSION['user_id'])) {
-    die("Akses ditolak. Silakan login terlebih dahulu.");
-}
+
 $user_id = $_SESSION['user_id'];
 $query = mysqli_query($conn, "SELECT foto FROM users WHERE id = '$user_id'");
 $data = mysqli_fetch_assoc($query);
@@ -94,6 +91,25 @@ $conn->close();
 </head>
 
 <body class="sb-nav-fixed">
+    <script>
+    // Jika tidak ada session PHP, coba isi via sessionStorage (offline login)
+    if (!<?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>) {
+        const userData = sessionStorage.getItem('userData');
+        if (userData) {
+            const user = JSON.parse(userData);
+            // Tampilkan halaman atau data user secara dinamis
+            document.body.innerHTML = `
+        <h1>Halo, ${user.nama}</h1>
+        <p>Email: ${user.email}</p>
+        <p>Level: ${user.level}</p>
+      `;
+        } else {
+            alert("Akses ditolak. Silakan login terlebih dahulu.");
+            window.location.href = "login.html";
+        }
+    }
+    </script>
+
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->
         <a class="navbar-brand ps-3" href="index.html">

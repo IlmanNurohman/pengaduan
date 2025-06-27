@@ -99,7 +99,7 @@ $conn->close();
     <a href="logout.php">Logout</a>
 
     <?php else: ?>
-    <!-- Login OFFLINE, gunakan JavaScript -->
+    <!-- Login OFFLINE -->
     <script>
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -108,20 +108,15 @@ $conn->close();
         <h1>Halo, ${user.nama}</h1>
         <p>Email: ${user.email}</p>
         <p>Level: ${user.level}</p>
-        <a href="#" onclick="logoutOffline()">Logout</a>
+        <a href="logout.php">Logout</a> <!-- ⬅️ Gunakan logout.php juga -->
       `;
     } else {
         alert("Akses ditolak. Silakan login terlebih dahulu.");
         window.location.href = "login.html";
     }
-
-    function logoutOffline() {
-        localStorage.removeItem('userData');
-        localStorage.removeItem('user_id');
-        window.location.href = 'login.html';
-    }
     </script>
     <?php endif; ?>
+
 
 
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">

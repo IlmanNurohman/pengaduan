@@ -599,8 +599,17 @@ $conn->close();
 
             if (berhasilSync) {
                 sessionStorage.setItem("pengaduan_berhasil", "1");
-                location.reload();
+
+                // ✅ Jangan reload, cukup munculkan notifikasi atau render ulang data
+                const notifikasiModal = new bootstrap.Modal(document.getElementById('notifikasiModal'));
+                notifikasiModal.show();
+
+                // ✅ Panggil fungsi untuk render ulang data di tabel
+                if (typeof renderOfflineReports === "function") {
+                    renderOfflineReports(); // tampilkan ulang data pengaduan
+                }
             }
+
         }
 
         const form = document.getElementById("pengaduanForm");

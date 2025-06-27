@@ -170,6 +170,17 @@ function sha256(text) {
             .join('');
     });
 }
+console.log("Input username:", inputUsername);
+console.log("Input password (hash):", hashedInputPassword);
+console.log("Stored username:", storedUser.username);
+console.log("Stored password:", storedUser.password);
+
+if (inputUsername === storedUser.username && hashedInputPassword === storedUser.password) {
+  console.log("Login Berhasil");
+} else {
+  console.log("Login Gagal");
+}
+
 </script>
 
 

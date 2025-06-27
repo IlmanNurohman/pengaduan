@@ -92,23 +92,16 @@ $conn->close();
 
 <body class="sb-nav-fixed">
     <script>
-    // Jika tidak ada session PHP, coba isi via sessionStorage (offline login)
-    if (!<?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>) {
-        const userData = sessionStorage.getItem('userData');
-        if (userData) {
-            const user = JSON.parse(userData);
-            // Tampilkan halaman atau data user secara dinamis
-            document.body.innerHTML = `
-        <h1>Halo, ${user.nama}</h1>
-        <p>Email: ${user.email}</p>
-        <p>Level: ${user.level}</p>
-      `;
-        } else {
-            alert("Akses ditolak. Silakan login terlebih dahulu.");
-            window.location.href = "login.html";
-        }
+    const userData = localStorage.getItem('userData'); // 🔁 pakai localStorage sekarang
+    if (userData) {
+        const user = JSON.parse(userData);
+        // tampilkan konten atau redirect seperti biasa
+    } else {
+        alert("Akses ditolak. Silakan login terlebih dahulu.");
+        window.location.href = "login.html";
     }
     </script>
+
 
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->

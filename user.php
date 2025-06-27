@@ -627,20 +627,30 @@ $conn->close();
             data.forEach((val, key) => obj[key] = val);
 
             if (!navigator.onLine) {
+                // === OFFLINE MODE ===
                 try {
                     const db = await openIndexedDB();
                     await db.add("u637089379_lapordesa", obj);
                     console.log("📦 Data DISIMPAN ke IndexedDB karena OFFLINE:", obj);
                     sessionStorage.setItem('baruSimpanOffline', '1');
 
+                    // Sembunyikan modal proses
                     prosesModal.hide();
+
+                    // Tampilkan modal offline sukses
                     const offlineModal = new bootstrap.Modal(document.getElementById(
                         'offlineModal'));
                     offlineModal.show();
+
+                    // ❌ Tidak reload halaman di sini
+                    form.reset(); // Opsional: reset form saja
+
                 } catch (err) {
                     alert("Gagal simpan offline: " + err.message);
                 }
+
             } else {
+                // === ONLINE MODE ===
                 prosesModal.show();
                 try {
                     const response = await fetch("proses_pengaduan.php", {
@@ -658,23 +668,21 @@ $conn->close();
                             'notifikasiModal'));
                         notifikasiModal.show();
 
-
-                        // Setelah modal ditutup, reload otomatis
-                        document.getElementById('notifikasiModal').addEventListener(
-                            'hidden.bs.modal', () => {
-
-                            });
+                        // ❌ Hapus event reload — cukup reset form saja
                         form.reset();
+
                     } else {
                         console.error("❌ Gagal kirim saat online.");
                         alert("Gagal mengirim pengaduan.");
                     }
+
                 } catch (err) {
                     prosesModal.hide();
                     alert("Kesalahan saat kirim data: " + err.message);
                 }
             }
         });
+
 
         // Jalankan sync jika online
         if (navigator.onLine) {

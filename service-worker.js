@@ -1,4 +1,4 @@
-const CACHE_NAME = "pengaduan-cache-v3";
+const CACHE_NAME = "pengaduan-cache-v4";
 
 const urlsToCache = [
   "index.php",
@@ -90,19 +90,21 @@ self.addEventListener("fetch", (event) => {
   const cleanPath = requestURL.pathname;
 
   // Jika PHP atau login → Network First
-  if (cleanPath.endsWith(".php")) {
+ if (cleanPath.endsWith(".php")) {
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
-        const responseClone = response.clone(); // ✅ clone di sini
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
+      .then((networkResponse) => {
+        // clone response SEKALI dan simpan
+        const cloned = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(cleanPath, cloned);
         });
-        return response; // kembalikan yang asli
+        return networkResponse;
       })
-      .catch(() => caches.match(cleanPath))
+      .catch(() => caches.match(cleanPath)) // fallback offline
   );
 }
+
  else {
     // Untuk file statis → Stale While Revalidate
     event.respondWith(

@@ -92,11 +92,6 @@ $conn->close();
 
 <body class="sb-nav-fixed">
     <?php if (isset($_SESSION['user_id'])): ?>
-    <!-- Login ONLINE -->
-    <h1>Halo, <?php echo $_SESSION['nama']; ?></h1>
-    <p>Email: <?php echo $_SESSION['email']; ?></p>
-    <p>Level: <?php echo $_SESSION['level']; ?></p>
-    <a href="logout.php">Logout</a>
 
     <?php else: ?>
     <!-- Login OFFLINE -->
@@ -104,12 +99,8 @@ $conn->close();
     const userData = localStorage.getItem('userData');
     if (userData) {
         const user = JSON.parse(userData);
-        document.body.innerHTML = `
-        <h1>Halo, ${user.nama}</h1>
-        <p>Email: ${user.email}</p>
-        <p>Level: ${user.level}</p>
-        <a href="logout.php">Logout</a> <!-- ⬅️ Gunakan logout.php juga -->
-      `;
+
+
     } else {
         alert("Akses ditolak. Silakan login terlebih dahulu.");
         window.location.href = "login.html";

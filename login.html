@@ -84,6 +84,9 @@ if (sessionStorage.getItem('userData')) {
         const tx = db.transaction('users', 'readwrite');
         const store = tx.objectStore('users');
         store.put(userData);
+        userData.username = userData.username.toLowerCase(); // ⬅️ normalize
+store.put(userData);
+
         tx.oncomplete = function () {
             console.log('Data user disimpan ke IndexedDB untuk offline login.');
             sessionStorage.removeItem('userData');
@@ -95,7 +98,8 @@ if (sessionStorage.getItem('userData')) {
 document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
-    const username = document.getElementById('inputUsername').value;
+  const username = document.getElementById('inputUsername').value.toLowerCase(); // ⬅️ normalize
+
     const password = document.getElementById('inputPassword').value;
 
     if (navigator.onLine) {

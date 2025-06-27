@@ -1,4 +1,4 @@
-const CACHE_NAME = "pengaduan-cache-v4";
+const CACHE_NAME = "pengaduan-cache-v3";
 
 const urlsToCache = [
   "index.php",
@@ -90,22 +90,29 @@ self.addEventListener("fetch", (event) => {
   const cleanPath = requestURL.pathname;
 
   // Jika PHP atau login → Network First
- if (cleanPath.endsWith(".php")) {
-  event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // clone response SEKALI dan simpan
-        const cloned = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(cleanPath, cloned);
-        });
-        return networkResponse;
-      })
-      .catch(() => caches.match(cleanPath)) // fallback offline
-  );
-}
-
- else {
+  if (cleanPath.endsWith(".php") || cleanPath.endsWith("login.html")) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Simpan versi terbaru ke cache
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cachedResponse) => {
+            return (
+              cachedResponse ||
+              new Response("Offline dan belum tersedia cache.", {
+                status: 503,
+                headers: { "Content-Type": "text/plain" },
+              })
+            );
+          });
+        })
+    );
+  } else {
     // Untuk file statis → Stale While Revalidate
     event.respondWith(
       caches.match(event.request).then((cached) => {
